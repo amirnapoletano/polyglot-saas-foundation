@@ -7,7 +7,7 @@
   let { data, form } = $props<{ data: Data; form?: Form }>();
 
   let workspace = $state('');
-</script>
+</script>   
 
 {#if form?.message}
   <p class="error">{form.message}</p>

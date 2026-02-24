@@ -1,6 +1,12 @@
 <script lang="ts">
-  export let data;
+  import { page } from '$app/stores';
+  let { data } = $props();
 </script>
+
+<header>
+  <h1>{data.org.name}</h1>
+  <p>Role: {$page.data.org.role}</p>
+</header>
 
 <h1>Dashboard</h1>
 
