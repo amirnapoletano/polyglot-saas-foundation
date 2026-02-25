@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 import { env } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
   const STRIPE_SECRET_KEY = env.STRIPE_SECRET_KEY;
   const STRIPE_WEBHOOK_SECRET = env.STRIPE_WEBHOOK_SECRET;
 
@@ -11,9 +11,7 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 
   const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
-};
 
-export const POST: RequestHandler = async ({ request, locals }) => {
   const getMetadataValue = (
     metadata: Stripe.Metadata | null | undefined,
     key: string
@@ -26,7 +24,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
   const isMissingTableError = (error: { code?: string; message?: string } | null) =>
     error?.code === '42P01' ||
-    (error?.message?.includes('org_billing') && error.message.includes('does not exist'));
+    (error?.message?.includes('org_billing') &&
+      error.message?.includes('does not exist'));
 
   const getSubscriptionPriceId = (subscription: Stripe.Subscription): string | null => {
     const firstItem = subscription.items.data[0];
@@ -76,6 +75,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   if (!sig) return new Response('Missing signature', { status: 400 });
 
   let event: Stripe.Event;
+
   try {
     event = stripe.webhooks.constructEvent(body, sig, STRIPE_WEBHOOK_SECRET);
   } catch (err: any) {
@@ -88,13 +88,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
+
         const customerId =
           typeof subscription.customer === 'string' ? subscription.customer : null;
 
         let organizationId = getMetadataValue(subscription.metadata, 'organization_id');
+
         if (!organizationId && customerId) {
           organizationId = await resolveOrgIdFromCustomer(customerId);
         }
+
         if (!organizationId) break;
 
         await upsertOrgBilling({ organizationId, subscription });
@@ -103,20 +106,29 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
+
         if (session.mode !== 'subscription') break;
 
-        const customerId = typeof session.customer === 'string' ? session.customer : null;
+        const customerId =
+          typeof session.customer === 'string' ? session.customer : null;
+
         let organizationId = getMetadataValue(session.metadata, 'organization_id');
 
         let subscription: Stripe.Subscription | null = null;
+
         if (typeof session.subscription === 'string') {
           const fetched = await stripe.subscriptions.retrieve(session.subscription);
           subscription = fetched;
+
           if (!organizationId) {
             organizationId = getMetadataValue(fetched.metadata, 'organization_id');
           }
-        } else if (session.subscription && typeof session.subscription !== 'string') {
+        } else if (
+          session.subscription &&
+          typeof session.subscription !== 'string'
+        ) {
           subscription = session.subscription as Stripe.Subscription;
+
           if (!organizationId) {
             organizationId = getMetadataValue(subscription.metadata, 'organization_id');
           }
@@ -125,6 +137,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         if (!organizationId && customerId) {
           organizationId = await resolveOrgIdFromCustomer(customerId);
         }
+
         if (!organizationId || !subscription) break;
 
         await upsertOrgBilling({ organizationId, subscription });
