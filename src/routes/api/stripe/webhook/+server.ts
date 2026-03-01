@@ -24,11 +24,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
   const isMissingTableError = (error: { code?: string; message?: string } | null) =>
     error?.code === '42P01' ||
-    (error?.message?.includes('org_billing') &&
-      error.message?.includes('does not exist'));
+    (error?.message?.includes('org_billing') && error.message.includes('does not exist'));
 
   const getSubscriptionPriceId = (subscription: Stripe.Subscription): string | null => {
-    const firstItem = subscription.items.data[0];
+    const firstItem = subscription.items.data?.[0];
     if (!firstItem) return null;
 
     const price = firstItem.price;
@@ -48,40 +47,47 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   };
 
   const upsertOrgBilling = async (args: {
-    organizationId: string;
-    subscription: Stripe.Subscription;
-  }) => {
-    const { organizationId, subscription } = args;
+  organizationId: string;
+  subscription: Stripe.Subscription;
+}) => {
+  const { organizationId, subscription } = args;
 
-    const { error } = await locals.supabase.from('org_billing').upsert(
+  const { error } = await locals.supabase
+    .from('org_billing')
+    .upsert(
       {
         organization_id: organizationId,
+        stripe_subscription_id: subscription.id,
         status: subscription.status,
         price_id: getSubscriptionPriceId(subscription),
         current_period_end: subscription.current_period_end
           ? new Date(subscription.current_period_end * 1000).toISOString()
           : null,
-        cancel_at_period_end: subscription.cancel_at_period_end
+        cancel_at_period_end: subscription.cancel_at_period_end,
+        updated_at: new Date().toISOString()
       },
       { onConflict: 'organization_id' }
     );
 
-    if (error && !isMissingTableError(error)) throw error;
-  };
+  if (error && !isMissingTableError(error)) throw error;
+};
 
+  // ---- Stripe signature verification ----
   const sig = request.headers.get('stripe-signature');
-  const body = await request.text();
-
   if (!sig) return new Response('Missing signature', { status: 400 });
 
-  let event: Stripe.Event;
+  const body = await request.text();
 
+  let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(body, sig, STRIPE_WEBHOOK_SECRET);
   } catch (err: any) {
-    return new Response(`Webhook error: ${err.message}`, { status: 400 });
+    return new Response(`Webhook error: ${err?.message ?? 'Invalid signature'}`, {
+      status: 400
+    });
   }
 
+  // ---- Event handling ----
   try {
     switch (event.type) {
       case 'customer.subscription.created':
@@ -92,43 +98,35 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         const customerId =
           typeof subscription.customer === 'string' ? subscription.customer : null;
 
+        // Best source: subscription metadata (because we set subscription_data.metadata at checkout)
         let organizationId = getMetadataValue(subscription.metadata, 'organization_id');
 
+        // Fallback: customer metadata
         if (!organizationId && customerId) {
           organizationId = await resolveOrgIdFromCustomer(customerId);
         }
 
-        if (!organizationId) break;
+        // If we can't map, don't fail the webhook (avoid endless retries)
+        if (!organizationId) return new Response('ok', { status: 200 });
 
         await upsertOrgBilling({ organizationId, subscription });
-        break;
+        return new Response('ok', { status: 200 });
       }
 
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
 
-        if (session.mode !== 'subscription') break;
+        if (session.mode !== 'subscription') return new Response('ok', { status: 200 });
 
-        const customerId =
-          typeof session.customer === 'string' ? session.customer : null;
+        const customerId = typeof session.customer === 'string' ? session.customer : null;
 
+        // Session metadata is optional; subscription metadata is preferred.
         let organizationId = getMetadataValue(session.metadata, 'organization_id');
 
         let subscription: Stripe.Subscription | null = null;
 
         if (typeof session.subscription === 'string') {
-          const fetched = await stripe.subscriptions.retrieve(session.subscription);
-          subscription = fetched;
-
-          if (!organizationId) {
-            organizationId = getMetadataValue(fetched.metadata, 'organization_id');
-          }
-        } else if (
-          session.subscription &&
-          typeof session.subscription !== 'string'
-        ) {
-          subscription = session.subscription as Stripe.Subscription;
-
+          subscription = await stripe.subscriptions.retrieve(session.subscription);
           if (!organizationId) {
             organizationId = getMetadataValue(subscription.metadata, 'organization_id');
           }
@@ -138,16 +136,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
           organizationId = await resolveOrgIdFromCustomer(customerId);
         }
 
-        if (!organizationId || !subscription) break;
+        if (!organizationId || !subscription) return new Response('ok', { status: 200 });
 
         await upsertOrgBilling({ organizationId, subscription });
-        break;
+        return new Response('ok', { status: 200 });
       }
+
+      default:
+        return new Response('ok', { status: 200 });
     }
   } catch (error) {
     console.error('stripe webhook handler error', error);
     return new Response('Webhook handler error', { status: 500 });
   }
-
-  return new Response('ok', { status: 200 });
 };

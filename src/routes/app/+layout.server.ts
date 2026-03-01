@@ -38,8 +38,9 @@ export const load = async ({ locals }) => {
     .maybeSingle();
 
   const billingMissingTable =
-    (billingError as any)?.code === '42P01' ||
-    (billingError as any)?.message?.includes('org_billing')?.includes('does not exist');
+  (billingError as any)?.code === '42P01' ||
+  (billingError as any)?.message?.includes('org_billing') ||
+  (billingError as any)?.message?.includes('does not exist');
 
   if (billingError && !billingMissingTable) {
     throw kitError(500, billingError.message);
