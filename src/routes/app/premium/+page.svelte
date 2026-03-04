@@ -41,9 +41,10 @@
     alert('Portal URL missing');
   }
 </script>
-
 <main>
   <h1>Premium</h1>
+
+  <p>Current plan: {data.plan}</p>
 
   {#if data?.isActive}
     <p>Your org has an active billing status ✅</p>

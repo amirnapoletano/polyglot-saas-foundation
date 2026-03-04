@@ -1,3 +1,4 @@
+// src/routes/api/stripe/portal/+server.ts
 import Stripe from 'stripe';
 import { env } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';
@@ -54,10 +55,10 @@ export const POST: RequestHandler = async ({ locals, url }) => {
   }
   if (!confirmMembership) return new Response('Forbidden', { status: 403 });
 
-  // Get subscription id for this org
+  // Pull billing row
   const { data: billing, error: billingError } = await locals.supabase
     .from('org_billing')
-    .select('stripe_subscription_id, status')
+    .select('stripe_customer_id, stripe_subscription_id, status')
     .eq('organization_id', organizationId)
     .maybeSingle();
 
@@ -66,10 +67,8 @@ export const POST: RequestHandler = async ({ locals, url }) => {
     return new Response('Billing lookup failed', { status: 500 });
   }
 
-  const subId = billing?.stripe_subscription_id;
-
-  // If they’re not subscribed yet, send them to premium page
-  if (!subId) {
+  // If no subscription yet → send them to premium page
+  if (!billing?.stripe_subscription_id) {
     return new Response(JSON.stringify({ url: `${url.origin}/app/premium` }), {
       headers: { 'content-type': 'application/json' }
     });
@@ -77,13 +76,29 @@ export const POST: RequestHandler = async ({ locals, url }) => {
 
   const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
 
-  // Derive Stripe customer from subscription
-  const subscription = await stripe.subscriptions.retrieve(subId);
-  const customerId = typeof subscription.customer === 'string' ? subscription.customer : null;
+  // Prefer DB customer id (fastest / most stable)
+  let customerId: string | null = billing?.stripe_customer_id ?? null;
+
+  // Fallback: derive from subscription and backfill DB
+  if (!customerId) {
+    const subscription = await stripe.subscriptions.retrieve(billing.stripe_subscription_id);
+    customerId = typeof subscription.customer === 'string' ? subscription.customer : null;
+
+    if (customerId) {
+      const { error: backfillError } = await locals.supabase
+        .from('org_billing')
+        .update({ stripe_customer_id: customerId, updated_at: new Date().toISOString() })
+        .eq('organization_id', organizationId);
+
+      if (backfillError) {
+        console.error('portal: backfill stripe_customer_id error', backfillError);
+        // Don’t fail portal for a backfill issue
+      }
+    }
+  }
 
   if (!customerId) return new Response('Missing Stripe customer', { status: 500 });
 
-  // Create portal session
   const portal = await stripe.billingPortal.sessions.create({
     customer: customerId,
     return_url: `${url.origin}/app/premium`
