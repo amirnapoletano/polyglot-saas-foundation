@@ -1,4 +1,5 @@
 import { redirect, error as kitError } from '@sveltejs/kit';
+import { getOrgBilling } from '$lib/server/billing';
 
 export const load = async ({ locals }) => {
   const { session, user } = await locals.safeGetSession();
@@ -30,21 +31,8 @@ export const load = async ({ locals }) => {
   if (membershipError) throw kitError(500, membershipError.message);
   if (!membership) throw kitError(403, 'Not a member of this organization');
 
-  // Billing / plan gating (optional table). If it doesn't exist yet, default to inactive.
-  const { data: billing, error: billingError } = await locals.supabase
-    .from('org_billing')
-    .select('status, price_id, current_period_end, cancel_at_period_end')
-    .eq('organization_id', profile.active_org_id)
-    .maybeSingle();
-
-  const billingMissingTable =
-  (billingError as any)?.code === '42P01' ||
-  (billingError as any)?.message?.includes('org_billing') ||
-  (billingError as any)?.message?.includes('does not exist');
-
-  if (billingError && !billingMissingTable) {
-    throw kitError(500, billingError.message);
-  }
+  // ✅ Billing / plan (single source of truth)
+  const { billing, isActive, plan } = await getOrgBilling(locals, profile.active_org_id);
 
   return {
     user,
@@ -53,6 +41,8 @@ export const load = async ({ locals }) => {
       id: profile.active_org_id,
       role: membership.role
     },
-    billing: billing ?? { status: 'inactive' }
+    billing,
+    isActive,
+    plan
   };
 };
