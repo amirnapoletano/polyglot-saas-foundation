@@ -48,34 +48,35 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   };
 
   const upsertOrgBilling = async (args: {
-    organizationId: string;
-    subscription: Stripe.Subscription;
-    stripeCustomerId: string | null;
-    
-  }) => {
-    const { organizationId, subscription, stripeCustomerId } = args;
+  organizationId: string;
+  subscription: Stripe.Subscription;
+  stripeCustomerId: string | null;
+}) => {
+  const { organizationId, subscription, stripeCustomerId } = args;
 
-    const { error } = await locals.supabase
-      .from('org_billing')
-      .upsert(
-        {
-          organization_id: organizationId,
-          stripe_customer_id: stripeCustomerId,
-          stripe_subscription_id: subscription.id,
-          status: subscription.status,
-          price_id: getSubscriptionPriceId(subscription),
-          current_period_end: subscription.current_period_end
-            ? new Date(subscription.current_period_end * 1000).toISOString()
-            : null,
-          cancel_at_period_end: subscription.cancel_at_period_end,
-          updated_at: new Date().toISOString()
-        },
-        { onConflict: 'organization_id' }
-      );
+  const latestSubscription = await stripe.subscriptions.retrieve(subscription.id);
 
-    if (error && !isMissingTableError(error)) throw error;
-    
-  };
+  const { error } = await locals.supabase
+    .from('org_billing')
+    .upsert(
+      {
+        organization_id: organizationId,
+        stripe_customer_id: stripeCustomerId,
+        stripe_subscription_id: latestSubscription.id,
+        status: latestSubscription.status,
+        price_id: getSubscriptionPriceId(latestSubscription),
+        current_period_end: latestSubscription.current_period_end
+          ? new Date(latestSubscription.current_period_end * 1000).toISOString()
+          : null,
+        cancel_at_period_end: latestSubscription.cancel_at_period_end,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: 'organization_id' }
+    );
+
+  if (error && !isMissingTableError(error)) throw error;
+};
+
 
   // ---- Verify Stripe signature ----
   const sig = request.headers.get('stripe-signature');

@@ -1,31 +1,32 @@
 <script lang="ts">
   export let data: {
-    plan?: string;
+    plan?: 'free' | 'pro' | string;
     isActive?: boolean;
-    billing?: {
-      status?: string | null;
-      current_period_end?: string | null;
-    } | null;
+    status?: string;
+    willCancel?: boolean;
+    cancelsAt?: string | null;
+    currentPeriodEnd?: string | null;
+    billing?: { status?: string | null } | null;
   };
 
   let loading = false;
 
-  const planRaw = data?.plan ?? 'free';
+  // ✅ reactive labels (update when `data` changes)
+  $: planLabel = data?.plan ?? 'free';
+  $: statusLabel = data?.status ?? data?.billing?.status ?? 'inactive';
 
-  const planLabel =
-    planRaw.charAt(0).toUpperCase() + planRaw.slice(1);
-
-  const statusLabel = data?.billing?.status ?? 'inactive';
-
-  function formatDate(date: string | null | undefined) {
-    if (!date) return null;
-
-    return new Date(date).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
+  const formatDate = (iso: string | null | undefined) => {
+    if (!iso) return null;
+    try {
+      return new Date(iso).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit'
+      });
+    } catch {
+      return iso;
+    }
+  };
 
   async function subscribe() {
     if (loading) return;
@@ -83,15 +84,18 @@
 <main>
   <h1>Premium</h1>
 
-  <p><strong>Plan:</strong> {planLabel}</p>
-  <p><strong>Status:</strong> {statusLabel}</p>
+  <div class="meta">
+    <p><strong>Plan:</strong> {planLabel}</p>
+    <p><strong>Status:</strong> {statusLabel}</p>
 
-  {#if data?.billing?.current_period_end}
-    <p>
-      <strong>Next billing:</strong>
-      {formatDate(data.billing.current_period_end)}
-    </p>
-  {/if}
+    {#if data?.isActive}
+      {#if data?.willCancel}
+        <p class="muted">Cancellation scheduled — access ends on {formatDate(data.cancelsAt)}</p>
+      {:else if data?.currentPeriodEnd}
+        <p class="muted">Renews on {formatDate(data.currentPeriodEnd)}</p>
+      {/if}
+    {/if}
+  </div>
 
   {#if data?.isActive}
     <p>Your org has an active billing status ✅</p>
@@ -110,6 +114,14 @@
     <button on:click={subscribe} disabled={loading}>
       {loading ? 'Loading…' : 'Subscribe'}
     </button>
+
+    <p class="muted">
+  {#if data?.cancelsAt}
+    Cancellation scheduled — access ends on {formatDate(data.cancelsAt)}
+  {:else}
+    Cancellation scheduled
+  {/if}
+</p>
   {/if}
 </main>
 
@@ -118,6 +130,14 @@
     max-width: 720px;
     margin: 0 auto;
     padding: 3rem 1.25rem;
+  }
+
+  .meta {
+    margin: 0.5rem 0 1.25rem;
+  }
+
+  .muted {
+    opacity: 0.7;
   }
 
   button {
@@ -141,4 +161,4 @@
     border: 1px solid #e5e7eb;
     border-radius: 1rem;
   }
-</style>.   
+</style>
