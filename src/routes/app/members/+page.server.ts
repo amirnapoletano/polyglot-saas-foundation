@@ -1,86 +1,99 @@
 import { redirect, error } from '@sveltejs/kit';
 
 export const load = async ({ locals }) => {
-  const { session, user } = await locals.safeGetSession();
+	const { session, user } = await locals.safeGetSession();
 
-  if (!session || !user) throw redirect(302, '/login');
+	if (!session || !user) throw redirect(302, '/login');
 
-  const { data: profile, error: profileError } = await locals.supabase
-    .from('profiles')
-    .select('active_org_id')
-    .eq('id', user.id)
-    .maybeSingle();
+	const { data: profile, error: profileError } = await locals.supabase
+		.from('profiles')
+		.select('active_org_id')
+		.eq('id', user.id)
+		.maybeSingle();
 
-  if (profileError) throw error(500, profileError.message);
+	if (profileError) throw error(500, profileError.message);
 
-  const orgId = profile?.active_org_id;
-  if (!orgId) throw redirect(302, '/onboarding');
+	const orgId = profile?.active_org_id;
+	if (!orgId) throw redirect(302, '/onboarding');
 
-  const { data: membership, error: membershipError } = await locals.supabase
-    .from('organization_members')
-    .select('role')
-    .eq('organization_id', orgId)
-    .eq('user_id', user.id)
-    .maybeSingle();
+	const { data: membership, error: membershipError } = await locals.supabase
+		.from('organization_members')
+		.select('role')
+		.eq('organization_id', orgId)
+		.eq('user_id', user.id)
+		.maybeSingle();
 
-  if (membershipError) throw error(500, membershipError.message);
-  if (!membership) throw error(403, 'Not a member of this organization');
+	if (membershipError) throw error(500, membershipError.message);
+	if (!membership) throw error(403, 'Not a member of this organization');
 
-  const { data: members, error: membersError } = await locals.supabase
-    .from('organization_members')
-    .select('id, organization_id, user_id, role, created_at')
-    .eq('organization_id', orgId)
-    .order('created_at', { ascending: true });
+	const { data: members, error: membersError } = await locals.supabase
+		.from('organization_members')
+		.select('id, organization_id, user_id, role, created_at')
+		.eq('organization_id', orgId)
+		.order('created_at', { ascending: true });
 
-  if (membersError) throw error(500, membersError.message);
+	if (membersError) throw error(500, membersError.message);
 
-  const memberIds = (members ?? []).map((m) => m.user_id);
+	const memberIds = (members ?? []).map((member) => member.user_id);
 
-  let profilesById: Record<string, { email: string | null; display_name: string | null }> = {};
+	let memberProfiles: Array<{
+		id: string;
+		email: string | null;
+		display_name: string | null;
+	}> = [];
 
-  if (memberIds.length > 0) {
-    const { data: memberProfiles, error: memberProfilesError } = await locals.supabase
-      .from('profiles')
-      .select('id, email, display_name')
-      .in('id', memberIds);
+	let profilesById: Record<string, { email: string | null; display_name: string | null }> = {};
 
-    if (memberProfilesError) throw error(500, memberProfilesError.message);
+	if (memberIds.length > 0) {
+		const { data, error: memberProfilesError } = await locals.supabase
+			.from('profiles')
+			.select('id, email, display_name')
+			.in('id', memberIds);
 
-    profilesById = Object.fromEntries(
-      (memberProfiles ?? []).map((profile) => [
-        profile.id,
-        {
-          email: profile.email ?? null,
-          display_name: profile.display_name ?? null
-        }
-      ])
-    );
-  }
+		if (memberProfilesError) throw error(500, memberProfilesError.message);
 
-  const normalizedMembers = (members ?? []).map((member) => ({
-    id: member.id,
-    user_id: member.user_id,
-    role: member.role,
-    created_at: member.created_at,
-    profile: profilesById[member.user_id] ?? {
-      email: null,
-      display_name: null
-    }
-  }));
+		memberProfiles = data ?? [];
 
-  const { data: invites, error: invitesError } = await locals.supabase
-    .from('org_invites')
-    .select('id, email, role, token, expires_at, created_at, accepted_at')
-    .eq('organization_id', orgId)
-    .is('accepted_at', null)
-    .order('created_at', { ascending: false });
+		profilesById = Object.fromEntries(
+			memberProfiles.map((profile) => [
+				profile.id,
+				{
+					email: profile.email ?? null,
+					display_name: profile.display_name ?? null
+				}
+			])
+		);
+	}
 
-  if (invitesError) throw error(500, invitesError.message);
+	const normalizedMembers = (members ?? []).map((member) => ({
+		id: member.id,
+		user_id: member.user_id,
+		role: member.role,
+		created_at: member.created_at,
+		profile: profilesById[member.user_id] ?? {
+			email: null,
+			display_name: null
+		}
+	}));
 
-  return {
-    orgId,
-    currentUserRole: membership.role,
-    members: normalizedMembers,
-    invites: invites ?? []
-  };
+	const { data: invites, error: invitesError } = await locals.supabase
+		.from('org_invites')
+		.select('id, email, role, token, expires_at, created_at, accepted_at')
+		.eq('organization_id', orgId)
+		.is('accepted_at', null)
+		.order('created_at', { ascending: false });
+
+	if (invitesError) throw error(500, invitesError.message);
+
+	console.log('memberIds', memberIds);
+	console.log('memberProfiles', memberProfiles);
+	console.log('profilesById', profilesById);
+	console.log('normalizedMembers', normalizedMembers);
+
+	return {
+		orgId,
+		currentUserRole: membership.role,
+		members: normalizedMembers,
+		invites: invites ?? []
+	};
 };
