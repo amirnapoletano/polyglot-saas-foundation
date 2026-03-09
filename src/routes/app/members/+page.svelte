@@ -65,13 +65,17 @@
 
 <h2>Members</h2>
 
-<ul>
-  {#each data.members as member}
-    <li>
-      {member.profile?.email} — {member.role}
-    </li>
-  {/each}
-</ul>
+{#if data.members.length === 0}
+  <p>No members found.</p>
+{:else}
+  <ul>
+    {#each data.members as member}
+      <li>
+        {member.profile.display_name ?? member.profile.email ?? member.user_id} — {member.role}
+      </li>
+    {/each}
+  </ul>
+{/if}
 
 <h2>Pending Invitations</h2>
 
