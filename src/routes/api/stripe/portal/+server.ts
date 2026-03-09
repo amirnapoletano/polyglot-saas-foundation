@@ -10,7 +10,7 @@ export const POST: RequestHandler = async ({ locals, url }) => {
     return new Response('Stripe not configured', { status: 500 });
   }
 
-  // Require auth
+  // Require auth 
   const { session, user } = await locals.safeGetSession();
   if (!session || !user) return new Response('Unauthorized', { status: 401 });
 
