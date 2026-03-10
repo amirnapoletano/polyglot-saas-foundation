@@ -1,11 +1,13 @@
 <script lang="ts">
-  export let data: {
-    status: 'accepted' | 'expired' | 'wrong-account';
-    invite: {
-      email: string;
-      role: string;
-    };
-  };
+export let data:
+  | {
+      status: 'accepted' | 'expired' | 'wrong-account';
+      invite: {
+        email: string;
+        role: string;
+      };
+    }
+  | undefined;
 </script>
 
 <svelte:head>

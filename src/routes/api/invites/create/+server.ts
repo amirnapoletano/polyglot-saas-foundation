@@ -18,7 +18,6 @@ export const POST = async ({ request, locals }) => {
     throw error(400, 'Email is required');
   }
 
-  // resolve active org from profile
   const { data: profile, error: profileError } = await locals.supabase
     .from('profiles')
     .select('active_org_id')
@@ -62,14 +61,9 @@ export const POST = async ({ request, locals }) => {
   const usedSeats = (memberCount ?? 0) + (pendingInviteCount ?? 0);
 
   if (usedSeats >= seatLimit) {
-    throw error(
-      400,
-      `Seat limit reached for the ${billingState.plan} plan (${seatLimit} seats).`
-    );
+    throw error(400, `Seat limit reached for the ${billingState.plan} plan (${seatLimit} seats).`);
   }
 
-
-  // make sure current user is allowed to invite
   const { data: membership, error: membershipError } = await locals.supabase
     .from('organization_members')
     .select('role')
@@ -86,7 +80,6 @@ export const POST = async ({ request, locals }) => {
     throw error(403, 'Not allowed to invite members');
   }
 
-  // prevent duplicate pending invite
   const { data: existingInvite, error: existingInviteError } = await locals.supabase
     .from('org_invites')
     .select('id')
@@ -94,13 +87,45 @@ export const POST = async ({ request, locals }) => {
     .eq('email', email)
     .is('accepted_at', null)
     .maybeSingle();
+
   if (existingInviteError) {
     console.error('invite: existing invite lookup error', existingInviteError);
     throw error(500, existingInviteError.message);
   }
 
   if (existingInvite) {
-    throw error(400, 'An invite for this email already exists');
+    throw error(400, 'User already invited');
+  }
+
+  const { data: matchingProfiles, error: matchingProfilesError } = await locals.supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', email)
+    .limit(1);
+
+  if (matchingProfilesError) {
+    console.error('invite: matching profile lookup error', matchingProfilesError);
+    throw error(500, matchingProfilesError.message);
+  }
+
+  const existingUserId = matchingProfiles?.[0]?.id;
+
+  if (existingUserId) {
+    const { data: existingMember, error: existingMemberError } = await locals.supabase
+      .from('organization_members')
+      .select('id')
+      .eq('organization_id', orgId)
+      .eq('user_id', existingUserId)
+      .maybeSingle();
+
+    if (existingMemberError) {
+      console.error('invite: existing member lookup error', existingMemberError);
+      throw error(500, existingMemberError.message);
+    }
+
+    if (existingMember) {
+      throw error(400, 'User is already a member of this organization');
+    }
   }
 
   const token = crypto.randomBytes(32).toString('hex');

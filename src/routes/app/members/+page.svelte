@@ -197,7 +197,7 @@
           autocomplete="off"
         />
 
-        <button on:click={invite} disabled={loading}>
+        <button on:click={invite} disabled={loading || (data.usedSeats ?? 0) >= (data.seatLimit ?? 0)}>
           {#if loading}
             Sending...
           {:else}
@@ -226,6 +226,10 @@
         </button>
       </div>
     {/if}
+    
+    {#if (data.usedSeats ?? 0) >= (data.seatLimit ?? 0)}
+  <p class="error">Seat limit reached for your plan.</p>
+{/if}
   </section>
 
   <section class="card">

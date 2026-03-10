@@ -23,7 +23,7 @@ export const load = async ({ params, locals, url }) => {
 
   const { data: invite, error: inviteError } = await supabaseAdmin
     .from('org_invites')
-    .select('id, organization_id, email, role, token, expires_at, accepted_at')
+    .select('id, organization_id, email, role, expires_at, accepted_at')
     .eq('token', token)
     .maybeSingle();
 
