@@ -2,7 +2,10 @@
   import { invalidateAll } from '$app/navigation';
 
   export let data: {
-    currentUserRole?: string;
+  currentUserRole?: string;
+  plan?: string;
+  seatLimit?: number;
+  usedSeats?: number;
     members: Array<{
       id: string;
       user_id: string;
@@ -95,9 +98,10 @@
         method: 'DELETE'
       });
 
+      const result = await res.json().catch(() => null);
+
       if (!res.ok) {
-        const result = await res.json().catch(() => null);
-        errorMessage = result?.message ?? 'Failed to cancel invite.';
+        errorMessage = result?.message ?? `Failed to cancel invite (HTTP ${res.status}).`;
         return;
       }
 
@@ -141,6 +145,31 @@
 
     return date.toLocaleDateString();
   }
+
+    async function changeRole(memberUserId: string, nextRole: string) {
+    errorMessage = '';
+    successMessage = '';
+
+    try {
+      const res = await fetch(`/api/members/${memberUserId}/role`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: nextRole })
+      });
+
+      if (!res.ok) {
+        const result = await res.json().catch(() => null);
+        errorMessage = result?.message ?? 'Failed to update role.';
+        return;
+      }
+
+      successMessage = 'Role updated.';
+      await invalidateAll();
+    } catch {
+      errorMessage = 'Something went wrong while updating the role.';
+    }
+  }
+
 </script>
 
 <svelte:head>
@@ -149,9 +178,12 @@
 
 <main class="page">
   <div class="header">
-    <h1>Team Members</h1>
-    <p class="muted">Manage organization access, invites, and roles.</p>
-  </div>
+  <h1>Team Members</h1>
+  <p class="muted">Manage organization access, invites, and roles.</p>
+  <p class="muted">
+    Plan: {data.plan ?? 'free'} · Seats used: {data.usedSeats ?? 0}/{data.seatLimit ?? 0}
+  </p>
+</div>
 
   <section class="card">
     <h2>Invite Member</h2>
@@ -214,18 +246,32 @@
               {/if}
             </div>
 
-            <div class="row-right">
-              <span class="badge">{member.role}</span>
+              <div class="row-right">
+                {#if canManageTeam}
+                  <select
+                    class="role-select"
+                    value={member.role}
+                    disabled={member.role === 'owner'}
+                    on:change={(e) =>
+                      changeRole(member.user_id, (e.currentTarget as HTMLSelectElement).value)}
+                  >
+                    <option value="owner">Owner</option>
+                    <option value="admin">Admin</option>
+                    <option value="member">Member</option>
+                  </select>
+                {:else}
+                  <span class="badge">{member.role}</span>
+                {/if}
 
-              {#if canManageTeam && member.role !== 'owner'}
-                <button
-                  class="danger"
-                  on:click={() => removeMember(member.user_id)}
-                >
-                  Remove
-                </button>
-              {/if}
-            </div>
+                {#if canManageTeam && member.role !== 'owner'}
+                  <button
+                    class="danger"
+                    on:click={() => removeMember(member.user_id)}
+                  >
+                    Remove
+                  </button>
+                {/if}
+              </div>
           </li>
         {/each}
       </ul>
@@ -370,6 +416,19 @@
     gap: 0.75rem;
     flex-wrap: wrap;
   }
+
+  .role-select {
+  padding: 0.55rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: white;
+  font-size: 0.875rem;
+}
+
+.role-select:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 
   .primary {
     font-weight: 600;

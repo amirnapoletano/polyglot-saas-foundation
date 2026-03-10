@@ -51,7 +51,6 @@ export const POST: RequestHandler = async ({ locals, url }) => {
 
   if (confirmError) {
     console.error('portal: confirm membership error', confirmError);
-    return new Response('Unable to confirm membership', { status: 500 });
   }
   if (!confirmMembership) return new Response('Forbidden', { status: 403 });
 

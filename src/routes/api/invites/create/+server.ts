@@ -1,5 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import crypto from 'crypto';
+import { getOrgBilling } from '$lib/server/billing';
+import { getSeatLimitFromPlan } from '$lib/server/team-limits';
 
 export const POST = async ({ request, locals }) => {
   const { session, user } = await locals.safeGetSession();
@@ -32,6 +34,40 @@ export const POST = async ({ request, locals }) => {
   if (!orgId) {
     throw error(400, 'No active organization');
   }
+
+  const billingState = await getOrgBilling(locals, orgId);
+  const seatLimit = getSeatLimitFromPlan(billingState.plan);
+
+  const { count: memberCount, error: memberCountError } = await locals.supabase
+    .from('organization_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('organization_id', orgId);
+
+  if (memberCountError) {
+    console.error('invite: member count error', memberCountError);
+    throw error(500, memberCountError.message);
+  }
+
+  const { count: pendingInviteCount, error: pendingInviteCountError } = await locals.supabase
+    .from('org_invites')
+    .select('*', { count: 'exact', head: true })
+    .eq('organization_id', orgId)
+    .is('accepted_at', null);
+
+  if (pendingInviteCountError) {
+    console.error('invite: pending invite count error', pendingInviteCountError);
+    throw error(500, pendingInviteCountError.message);
+  }
+
+  const usedSeats = (memberCount ?? 0) + (pendingInviteCount ?? 0);
+
+  if (usedSeats >= seatLimit) {
+    throw error(
+      400,
+      `Seat limit reached for the ${billingState.plan} plan (${seatLimit} seats).`
+    );
+  }
+
 
   // make sure current user is allowed to invite
   const { data: membership, error: membershipError } = await locals.supabase

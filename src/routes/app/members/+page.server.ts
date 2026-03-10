@@ -1,5 +1,6 @@
 import { redirect, error } from '@sveltejs/kit';
-
+import { getOrgBilling } from '$lib/server/billing';
+import { getSeatLimitFromPlan } from '$lib/server/team-limits';
 export const load = async ({ locals }) => {
 	const { session, user } = await locals.safeGetSession();
 
@@ -89,11 +90,16 @@ export const load = async ({ locals }) => {
 	console.log('memberProfiles', memberProfiles);
 	console.log('profilesById', profilesById);
 	console.log('normalizedMembers', normalizedMembers);
-
+  
+  const billingState = await getOrgBilling(locals, orgId);
+  const seatLimit = getSeatLimitFromPlan(billingState.plan);
+  const usedSeats = (members ?? []).length + (invites ?? []).length;
 	return {
 		orgId,
 		currentUserRole: membership.role,
 		members: normalizedMembers,
-		invites: invites ?? []
+		invites: invites ?? [],
+    seatLimit,
+    usedSeats
 	};
 };
