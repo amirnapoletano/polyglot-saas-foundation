@@ -33,6 +33,8 @@
   const canManageTeam =
     data.currentUserRole === 'owner' || data.currentUserRole === 'admin';
 
+  const canChangeRoles = data.currentUserRole === 'owner';
+
   async function invite() {
     errorMessage = '';
     successMessage = '';
@@ -124,9 +126,10 @@
         method: 'DELETE'
       });
 
+      const result = await res.json().catch(() => null);
+
       if (!res.ok) {
-        const result = await res.json().catch(() => null);
-        errorMessage = result?.message ?? 'Failed to remove member.';
+        errorMessage = result?.message ?? `Failed to remove member (HTTP ${res.status}).`;
         return;
       }
 
@@ -251,7 +254,7 @@
             </div>
 
               <div class="row-right">
-                {#if canManageTeam}
+                {#if canChangeRoles}
                   <select
                     class="role-select"
                     value={member.role}
