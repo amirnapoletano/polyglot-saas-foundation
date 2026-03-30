@@ -1,4 +1,5 @@
 import { error, json } from '@sveltejs/kit';
+import { logActivity } from '$lib/server/audit';
 
 export const DELETE = async ({ params, locals }) => {
   const { session, user } = await locals.safeGetSession();
@@ -40,7 +41,7 @@ export const DELETE = async ({ params, locals }) => {
     throw error(500, membershipError.message);
   }
 
-  if (!membership || !['owner', 'admin'].includes(membership.role)) {
+  if (!membership || !membership.role || !['owner', 'admin'].includes(membership.role)) {
     throw error(403, 'Not allowed to cancel invites');
   }
 
@@ -71,6 +72,14 @@ export const DELETE = async ({ params, locals }) => {
   if (deleteError) {
     throw error(500, deleteError.message);
   }
+
+  await logActivity(locals.supabase, {
+    organizationId: orgId,
+    actorUserId: user.id,
+    action: 'invite.cancelled',
+    resourceType: 'invite',
+    resourceId: inviteId
+  });
 
   return json({ ok: true });
 };

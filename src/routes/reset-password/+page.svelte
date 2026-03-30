@@ -1,36 +1,32 @@
 <script lang="ts">
-  type Data = { ok?: boolean; message?: string };
-  let { data } = $props<{ data: Data }>();
-  let email = $state('');
+	import AuthLayout from '$lib/components/AuthLayout.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
+
+	type Data = { ok?: boolean; message?: string };
+	let { data } = $props<{ data: Data }>();
+	let email = $state('');
 </script>
-<main class="wrap">
-  <h1>Reset password</h1>
 
-  <form method="POST" action="?/reset" class="card">
-    <label>
-      Email
-      <input name="email" type="email" bind:value={email} required />
-    </label>
+<svelte:head>
+	<title>Reset Password — Polyglot</title>
+</svelte:head>
 
-    {#if data?.ok}
-      <p class="ok">Reset link sent. Check your email.</p>
-    {/if}
-    {#if data?.message}
-      <p class="error">{data.message}</p>
-    {/if}
+<AuthLayout title="Reset password" subtitle="We'll send you a link to reset it">
+	<form method="POST" action="?/reset" class="flex flex-col gap-4">
+		<Input label="Email" name="email" type="email" bind:value={email} required autocomplete="email" />
 
-    <button class="btn" type="submit">Send reset link</button>
-    <p class="muted"><a href="/login">Back to login</a></p>
-  </form>
-</main>
+		{#if data?.ok}
+			<p class="text-sm text-emerald-600">Reset link sent. Check your email.</p>
+		{/if}
+		{#if data?.message}
+			<p class="text-sm text-red-600">{data.message}</p>
+		{/if}
 
-<style>
-  .wrap { max-width: 460px; margin: 0 auto; padding: 4rem 1.25rem; }
-  .card { display: grid; gap: 1rem; padding: 1.25rem; border: 1px solid #e5e7eb; border-radius: 1rem; }
-  label { display: grid; gap: .35rem; font-size: .95rem; }
-  input { padding: .7rem .8rem; border: 1px solid #e5e7eb; border-radius: .75rem; }
-  .btn { padding: .75rem 1rem; border-radius: .75rem; background: #111; color: #fff; border: 0; cursor: pointer; }
-  .muted { color: #6b7280; font-size: .9rem; margin: 0; }
-  .error { color: #b91c1c; margin: 0; font-size: .9rem; }
-  .ok { color: #065f46; margin: 0; font-size: .9rem; }
-</style>
+		<Button type="submit" class="w-full mt-2">Send reset link</Button>
+
+		<p class="text-sm text-center text-text-secondary">
+			<a href="/login" class="text-brand-600 hover:text-brand-700 transition-colors">Back to login</a>
+		</p>
+	</form>
+</AuthLayout>

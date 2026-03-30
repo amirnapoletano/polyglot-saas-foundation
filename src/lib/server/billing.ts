@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '$lib/types/database';
 import { env } from '$env/dynamic/private';
 
 export type OrgBillingRow = {
@@ -51,7 +52,7 @@ export function isSubscriptionActive(status: string | null | undefined): boolean
  * - cancel_at_period_end=true + status=active is STILL ACTIVE until period end.
  */
 export async function getOrgBilling(
-  locals: { supabase: SupabaseClient },
+  locals: { supabase: SupabaseClient<Database> },
   organizationId: string
 ): Promise<OrgBillingResult> {
   const { data, error } = await locals.supabase

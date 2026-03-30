@@ -2,6 +2,7 @@ import { json, error } from '@sveltejs/kit';
 import crypto from 'crypto';
 import { getOrgBilling } from '$lib/server/billing';
 import { getSeatLimitFromPlan } from '$lib/server/team-limits';
+import { logActivity } from '$lib/server/audit';
 
 export const POST = async ({ request, locals }) => {
   const { session, user } = await locals.safeGetSession();
@@ -76,7 +77,7 @@ export const POST = async ({ request, locals }) => {
     throw error(500, membershipError.message);
   }
 
-  if (!membership || !['owner', 'admin'].includes(membership.role)) {
+  if (!membership || !membership.role || !['owner', 'admin'].includes(membership.role)) {
     throw error(403, 'Not allowed to invite members');
   }
 
@@ -145,6 +146,14 @@ export const POST = async ({ request, locals }) => {
     console.error('invite: insert error', inviteError);
     throw error(500, inviteError.message);
   }
+
+  await logActivity(locals.supabase, {
+    organizationId: orgId,
+    actorUserId: user.id,
+    action: 'member.invited',
+    resourceType: 'invite',
+    metadata: { email, role }
+  });
 
   return json({
     invite_link: `/invite/${token}`

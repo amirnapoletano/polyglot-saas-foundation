@@ -2,6 +2,7 @@
 import Stripe from 'stripe';
 import { env } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';
+import { logActivity, type AuditAction } from '$lib/server/audit';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   const STRIPE_SECRET_KEY = env.STRIPE_SECRET_KEY;
@@ -11,7 +12,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     return new Response('Stripe not configured', { status: 501 });
   }
 
-  const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
+  const stripe = new Stripe(STRIPE_SECRET_KEY);
 
   const getMetadataValue = (
     metadata: Stripe.Metadata | null | undefined,
@@ -65,8 +66,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         stripe_subscription_id: latestSubscription.id,
         status: latestSubscription.status,
         price_id: getSubscriptionPriceId(latestSubscription),
-        current_period_end: latestSubscription.current_period_end
-          ? new Date(latestSubscription.current_period_end * 1000).toISOString()
+        current_period_end: latestSubscription.items.data[0]?.current_period_end
+          ? new Date(latestSubscription.items.data[0].current_period_end * 1000).toISOString()
           : null,
         cancel_at_period_end: latestSubscription.cancel_at_period_end,
         updated_at: new Date().toISOString()
@@ -115,6 +116,29 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         if (!organizationId) return new Response('ok', { status: 200 });
 
         await upsertOrgBilling({ organizationId, subscription, stripeCustomerId });
+
+        // Audit log for billing events
+        const billingAction: AuditAction =
+          event.type === 'customer.subscription.created' ? 'billing.subscribed'
+          : event.type === 'customer.subscription.deleted' ? 'billing.cancelled'
+          : 'billing.updated';
+        const { data: orgOwner } = await locals.supabase
+          .from('organization_members')
+          .select('user_id')
+          .eq('organization_id', organizationId)
+          .eq('role', 'owner')
+          .maybeSingle();
+        if (orgOwner?.user_id) {
+          await logActivity(locals.supabase, {
+            organizationId,
+            actorUserId: orgOwner.user_id,
+            action: billingAction,
+            resourceType: 'subscription',
+            resourceId: subscription.id,
+            metadata: { status: subscription.status }
+          });
+        }
+
         return new Response('ok', { status: 200 });
       }
 
@@ -145,6 +169,25 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         if (!organizationId || !subscription) return new Response('ok', { status: 200 });
 
         await upsertOrgBilling({ organizationId, subscription, stripeCustomerId });
+
+        // Audit log for checkout completion
+        const { data: checkoutOrgOwner } = await locals.supabase
+          .from('organization_members')
+          .select('user_id')
+          .eq('organization_id', organizationId)
+          .eq('role', 'owner')
+          .maybeSingle();
+        if (checkoutOrgOwner?.user_id) {
+          await logActivity(locals.supabase, {
+            organizationId,
+            actorUserId: checkoutOrgOwner.user_id,
+            action: 'billing.subscribed',
+            resourceType: 'subscription',
+            resourceId: subscription.id,
+            metadata: { status: subscription.status }
+          });
+        }
+
         return new Response('ok', { status: 200 });
       }
 

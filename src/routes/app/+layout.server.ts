@@ -10,7 +10,7 @@ export const load = async ({ locals }) => {
 
   const { data: profile, error: profileError } = await locals.supabase
     .from('profiles')
-    .select('id, email, display_name, plan, active_org_id')
+    .select('id, email, display_name, plan, active_org_id, avatar_url')
     .eq('id', user.id)
     .maybeSingle();
 
@@ -29,7 +29,7 @@ export const load = async ({ locals }) => {
     throw redirect(303, '/onboarding');
   }
 
-  const organizationIds = memberships.map((item) => item.organization_id);
+  const organizationIds = memberships.map((item) => item.organization_id).filter((id): id is string => id != null);
   const validOrganizationIds = new Set(organizationIds);
 
   let activeOrgId = profile.active_org_id;
@@ -71,10 +71,10 @@ export const load = async ({ locals }) => {
   const organizations = memberships.map((item) => ({
     organization_id: item.organization_id,
     role: item.role,
-    organization: orgMap[item.organization_id] ?? null
+    organization: item.organization_id ? orgMap[item.organization_id] ?? null : null
   }));
 
-  const { billing, isActive, plan } = await getOrgBilling(locals, activeOrgId);
+  const { billing, isActive, plan } = await getOrgBilling(locals, activeOrgId!);
 
   return {
     user,

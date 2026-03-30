@@ -1,6 +1,5 @@
-
-
 import { error, json } from '@sveltejs/kit';
+import { logActivity } from '$lib/server/audit';
 
 export const DELETE = async ({ params, locals }) => {
   const { session, user } = await locals.safeGetSession();
@@ -43,7 +42,7 @@ export const DELETE = async ({ params, locals }) => {
     throw error(500, currentMembershipError.message);
   }
 
-  if (!currentMembership || !['owner', 'admin'].includes(currentMembership.role)) {
+  if (!currentMembership || !currentMembership.role || !['owner', 'admin'].includes(currentMembership.role)) {
     throw error(403, 'Not allowed to remove members');
   }
 
@@ -110,6 +109,15 @@ export const DELETE = async ({ params, locals }) => {
       .update({ active_org_id: null })
       .eq('id', targetUserId);
   }
+
+  await logActivity(locals.supabase, {
+    organizationId: orgId,
+    actorUserId: user.id,
+    action: 'member.removed',
+    resourceType: 'member',
+    resourceId: targetUserId,
+    metadata: { removed_role: targetMembership.role }
+  });
 
   return json({ ok: true });
 };

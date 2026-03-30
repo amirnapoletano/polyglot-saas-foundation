@@ -1,5 +1,7 @@
 import type { Handle } from '@sveltejs/kit';
 import { supabaseServerClient } from '$lib/server/supabase';
+import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { verifyApiKey } from '$lib/server/api-keys';
 
 export const handle: Handle = async ({ event, resolve }) => {
   event.locals.supabase = supabaseServerClient(event.cookies);
@@ -46,6 +48,22 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.locals.user = user ?? null;
   } catch {
     event.locals.user = null;
+  }
+
+  // API key authentication for /api/v1/* routes
+  if (event.url.pathname.startsWith('/api/v1/')) {
+    const authHeader = event.request.headers.get('authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      const key = authHeader.slice(7);
+      const { createClient } = await import('@supabase/supabase-js');
+      const { env } = await import('$env/dynamic/private');
+      const serviceClient = createClient(PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY!);
+      const result = await verifyApiKey(serviceClient, key);
+      if (result.valid && result.organizationId) {
+        event.locals.apiKeyOrgId = result.organizationId;
+        event.locals.apiKeyId = result.keyId;
+      }
+    }
   }
 
   return resolve(event, {

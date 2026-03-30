@@ -1,4 +1,5 @@
 import { error, json } from '@sveltejs/kit';
+import { logActivity } from '$lib/server/audit';
 
 const ALLOWED_ROLES = ['owner', 'admin', 'member'] as const;
 type Role = (typeof ALLOWED_ROLES)[number];
@@ -107,6 +108,15 @@ export const PATCH = async ({ params, request, locals }) => {
   if (updateError) {
     throw error(500, updateError.message);
   }
+
+  await logActivity(locals.supabase, {
+    organizationId: orgId,
+    actorUserId: user.id,
+    action: 'member.role_changed',
+    resourceType: 'member',
+    resourceId: targetUserId,
+    metadata: { old_role: targetMembership.role, new_role: nextRole }
+  });
 
   return json({ ok: true });
 };

@@ -1,44 +1,34 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
+	import { enhance } from '$app/forms';
+	import AuthLayout from '$lib/components/AuthLayout.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
 
-  type Data = { message?: string; next?: string };
-  let { data } = $props<{ data: Data }>();
+	type Data = { message?: string; next?: string };
+	let { data } = $props<{ data: Data }>();
 
-  let email = $state('');
-  let password = $state('');
+	let email = $state('');
+	let password = $state('');
 </script>
 
-<main class="wrap">
-  <h1>Log in</h1>
+<svelte:head>
+	<title>Log in — Polyglot</title>
+</svelte:head>
 
-  <form method="POST" action="?/login" use:enhance class="card">
-    <label>
-      Email
-      <input name="email" type="email" bind:value={email} required />
-    </label>
+<AuthLayout title="Welcome back" subtitle="Log in to your account">
+	<form method="POST" action="?/login" use:enhance class="flex flex-col gap-4">
+		<Input label="Email" name="email" type="email" bind:value={email} required autocomplete="email" />
+		<Input label="Password" name="password" type="password" bind:value={password} required autocomplete="current-password" />
 
-    <label>
-      Password
-      <input name="password" type="password" bind:value={password} required />
-    </label>
+		{#if data?.message}
+			<p class="text-sm text-red-600">{data.message}</p>
+		{/if}
 
-    {#if data?.message}
-      <p class="error">{data.message}</p>
-    {/if}
+		<Button type="submit" class="w-full mt-2">Log in</Button>
 
-    <button class="btn" type="submit">Log in</button>
-
-    <p class="muted"><a href="/reset-password">Forgot password?</a></p>
-    <p class="muted">No account? <a href="/signup">Create one</a></p>
-  </form>
-</main>
-
-<style>
-  .wrap { max-width: 460px; margin: 0 auto; padding: 4rem 1.25rem; }
-  .card { display: grid; gap: 1rem; padding: 1.25rem; border: 1px solid #e5e7eb; border-radius: 1rem; }
-  label { display: grid; gap: .35rem; font-size: .95rem; }
-  input { padding: .7rem .8rem; border: 1px solid #e5e7eb; border-radius: .75rem; }
-  .btn { padding: .75rem 1rem; border-radius: .75rem; background: #111; color: #fff; border: 0; cursor: pointer; }
-  .muted { color: #6b7280; font-size: .9rem; margin: 0; }
-  .error { color: #b91c1c; margin: 0; font-size: .9rem; }
-</style>
+		<div class="flex items-center justify-between text-sm">
+			<a href="/reset-password" class="text-text-secondary hover:text-brand-600 transition-colors">Forgot password?</a>
+			<a href="/signup" class="text-text-secondary hover:text-brand-600 transition-colors">Create account</a>
+		</div>
+	</form>
+</AuthLayout>

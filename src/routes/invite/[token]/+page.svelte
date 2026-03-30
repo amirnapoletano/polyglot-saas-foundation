@@ -1,47 +1,30 @@
 <script lang="ts">
-export let data:
-  | {
-      status: 'accepted' | 'expired' | 'wrong-account';
-      invite: {
-        email: string;
-        role: string;
-      };
-    }
-  | undefined;
+	import AuthLayout from '$lib/components/AuthLayout.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+
+	let { data } = $props();
 </script>
 
 <svelte:head>
-  <title>Invite</title>
+	<title>Invite — Polyglot</title>
 </svelte:head>
 
-<main>
-  {#if data.status === 'accepted'}
-    <h1>Invite already accepted</h1>
-    <p>This invitation has already been used.</p>
-    <a href="/app/members">Go to members</a>
-  {:else if data.status === 'expired'}
-    <h1>Invite expired</h1>
-    <p>This invitation is no longer valid.</p>
-    <a href="/app/members">Back to app</a>
-  {:else if data.status === 'wrong-account'}
-    <h1>Wrong account</h1>
-    <p>
-      This invite was sent to <strong>{data.invite.email}</strong>.
-    </p>
-    <p>Please sign in with that account to accept the invitation.</p>
-    <a href="/app/logout">Log out</a>
-  {/if}
-</main>
-
-<style>
-  main {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 4rem 1.25rem;
-  }
-
-  a {
-    display: inline-block;
-    margin-top: 1rem;
-  }
-</style>
+<AuthLayout
+	title={data.status === 'accepted' ? 'Already accepted' : data.status === 'expired' ? 'Invite expired' : 'Wrong account'}
+	subtitle={data.status === 'accepted' ? 'This invitation has already been used.' : data.status === 'expired' ? 'This invitation is no longer valid.' : `This invite was sent to ${data.invite?.email ?? 'another account'}.`}
+>
+	{#if data.status === 'accepted'}
+		<a href="/app/members">
+			<Button class="w-full">Go to Members</Button>
+		</a>
+	{:else if data.status === 'expired'}
+		<a href="/app/dashboard">
+			<Button class="w-full">Back to App</Button>
+		</a>
+	{:else if data.status === 'wrong-account'}
+		<p class="text-sm text-text-secondary mb-4">Please sign in with <strong>{data.invite?.email}</strong> to accept this invitation.</p>
+		<a href="/app/logout">
+			<Button variant="secondary" class="w-full">Log out</Button>
+		</a>
+	{/if}
+</AuthLayout>

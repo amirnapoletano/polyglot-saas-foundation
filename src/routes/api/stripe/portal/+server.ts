@@ -73,7 +73,7 @@ export const POST: RequestHandler = async ({ locals, url }) => {
     });
   }
 
-  const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
+  const stripe = new Stripe(STRIPE_SECRET_KEY);
 
   // Prefer DB customer id (fastest / most stable)
   let customerId: string | null = billing?.stripe_customer_id ?? null;

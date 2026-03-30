@@ -11,8 +11,9 @@ export const POST: RequestHandler = async ({ locals, url }) => {
   }
 
   // Auth (match your existing pattern)
-  const userId = (locals as any)?.user?.id ?? null;
-  if (!userId) return new Response('Unauthorized', { status: 401 });
+ const { session: authSession, user } = await locals.safeGetSession();
+if (!authSession || !user) return new Response('Unauthorized', { status: 401 });
+const userId = user.id;
 
   // Resolve org safely: prefer server-known org, else first membership
   let organizationId: string | null =
@@ -57,8 +58,7 @@ export const POST: RequestHandler = async ({ locals, url }) => {
     return new Response('Forbidden', { status: 403 });
   }
 
-  const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
-
+  const stripe = new Stripe(STRIPE_SECRET_KEY);
   const successUrl = `${url.origin}/app/dashboard?stripe=success`;
   const cancelUrl = `${url.origin}/app/premium?stripe=cancel`;
 
