@@ -2,6 +2,7 @@ import type { Handle } from '@sveltejs/kit';
 import { supabaseServerClient } from '$lib/server/supabase';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { verifyApiKey } from '$lib/server/api-keys';
+import { rateLimit, limiters, rateLimitResponse } from '$lib/server/rate-limit';
 
 export const handle: Handle = async ({ event, resolve }) => {
   event.locals.supabase = supabaseServerClient(event.cookies);
@@ -50,6 +51,25 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.locals.user = null;
   }
 
+  // Rate limiting for API routes
+  const ip = event.getClientAddress();
+  const path = event.url.pathname;
+
+  if (path.startsWith('/api/invites/create') && event.request.method === 'POST') {
+    const result = rateLimit(`invite:${ip}`, limiters.invite);
+    if (!result.allowed) return rateLimitResponse(result);
+  }
+
+  if (path.startsWith('/api/api-keys') && event.request.method === 'POST') {
+    const result = rateLimit(`apikey:${ip}`, limiters.apiKey);
+    if (!result.allowed) return rateLimitResponse(result);
+  }
+
+  if (path.startsWith('/api/stripe/checkout') && event.request.method === 'POST') {
+    const result = rateLimit(`checkout:${ip}`, limiters.auth);
+    if (!result.allowed) return rateLimitResponse(result);
+  }
+
   // API key authentication for /api/v1/* routes
   if (event.url.pathname.startsWith('/api/v1/')) {
     const authHeader = event.request.headers.get('authorization');
@@ -62,6 +82,10 @@ export const handle: Handle = async ({ event, resolve }) => {
       if (result.valid && result.organizationId) {
         event.locals.apiKeyOrgId = result.organizationId;
         event.locals.apiKeyId = result.keyId;
+
+        // Rate limit per API key
+        const rl = rateLimit(`v1:${result.keyId}`, limiters.api);
+        if (!rl.allowed) return rateLimitResponse(rl);
       }
     }
   }

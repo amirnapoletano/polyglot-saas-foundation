@@ -3,6 +3,8 @@ import crypto from 'crypto';
 import { getOrgBilling } from '$lib/server/billing';
 import { getSeatLimitFromPlan } from '$lib/server/team-limits';
 import { logActivity } from '$lib/server/audit';
+import { sendEmail } from '$lib/server/email';
+import { inviteEmail } from '$lib/emails/invite';
 
 export const POST = async ({ request, locals }) => {
   const { session, user } = await locals.safeGetSession();
@@ -153,6 +155,33 @@ export const POST = async ({ request, locals }) => {
     action: 'member.invited',
     resourceType: 'invite',
     metadata: { email, role }
+  });
+
+  // Send invite email
+  const { data: org } = await locals.supabase
+    .from('organizations')
+    .select('name')
+    .eq('id', orgId)
+    .maybeSingle();
+
+  const { data: inviterProfile } = await locals.supabase
+    .from('profiles')
+    .select('display_name, email')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const acceptUrl = `${request.url.split('/api')[0]}/invite/${token}`;
+  const emailContent = inviteEmail({
+    orgName: org?.name ?? 'your workspace',
+    inviterName: inviterProfile?.display_name ?? inviterProfile?.email ?? 'A teammate',
+    role,
+    acceptUrl
+  });
+
+  await sendEmail({
+    to: email,
+    subject: emailContent.subject,
+    html: emailContent.html
   });
 
   return json({
