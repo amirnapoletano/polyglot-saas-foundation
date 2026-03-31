@@ -153,7 +153,7 @@
 					href={item.href}
 					class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
 						{isActive(item.href, $page.url.pathname)
-							? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
+							? 'bg-brand-600/10 text-brand-600 font-semibold'
 							: 'text-text-secondary hover:bg-surface-secondary hover:text-text-primary'}"
 					onclick={() => sidebarOpen = false}
 				>
