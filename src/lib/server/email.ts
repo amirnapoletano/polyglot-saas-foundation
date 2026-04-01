@@ -25,7 +25,9 @@ export interface SendEmailOptions {
 export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
 	const resend = getResend();
 	if (!resend) {
-		console.log(`[email] RESEND_API_KEY not set — skipping email to ${options.to}: ${options.subject}`);
+		console.log(
+			`[email] RESEND_API_KEY not set — skipping email to ${options.to}: ${options.subject}`
+		);
 		return false;
 	}
 

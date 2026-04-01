@@ -35,7 +35,9 @@ export const load = async ({ locals }) => {
 
 	if (membersError) throw error(500, membersError.message);
 
-	const memberIds = (members ?? []).map((member) => member.user_id).filter((id): id is string => id != null);
+	const memberIds = (members ?? [])
+		.map((member) => member.user_id)
+		.filter((id): id is string => id != null);
 
 	let memberProfiles: Array<{
 		id: string;
@@ -86,15 +88,15 @@ export const load = async ({ locals }) => {
 
 	if (invitesError) throw error(500, invitesError.message);
 
-  const billingState = await getOrgBilling(locals, orgId);
-  const seatLimit = getSeatLimitFromPlan(billingState.plan);
-  const usedSeats = (members ?? []).length + (invites ?? []).length;
+	const billingState = await getOrgBilling(locals, orgId);
+	const seatLimit = getSeatLimitFromPlan(billingState.plan);
+	const usedSeats = (members ?? []).length + (invites ?? []).length;
 	return {
 		orgId,
 		currentUserRole: membership.role,
 		members: normalizedMembers,
 		invites: invites ?? [],
-    seatLimit,
-    usedSeats
+		seatLimit,
+		usedSeats
 	};
 };

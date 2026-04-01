@@ -42,12 +42,16 @@
 	<img
 		{src}
 		alt={name ?? 'Avatar'}
-		class="inline-flex items-center justify-center rounded-full object-cover shrink-0 {sizes[size]} {className}"
+		class="inline-flex items-center justify-center rounded-full object-cover shrink-0 {sizes[
+			size
+		]} {className}"
 		onerror={() => (imgError = true)}
 	/>
 {:else}
 	<div
-		class="inline-flex items-center justify-center rounded-full font-medium shrink-0 {sizes[size]} {colors[colorIndex]} {className}"
+		class="inline-flex items-center justify-center rounded-full font-medium shrink-0 {sizes[
+			size
+		]} {colors[colorIndex]} {className}"
 	>
 		{initials}
 	</div>

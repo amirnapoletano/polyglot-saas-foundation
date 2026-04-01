@@ -2,94 +2,101 @@ import { redirect, error as kitError } from '@sveltejs/kit';
 import { getOrgBilling } from '$lib/server/billing';
 
 export const load = async ({ locals }) => {
-  const { session, user } = await locals.safeGetSession();
+	const { session, user } = await locals.safeGetSession();
 
-  if (!session || !user) {
-    throw redirect(303, '/login');
-  }
+	if (!session || !user) {
+		throw redirect(303, '/login');
+	}
 
-  const { data: profile, error: profileError } = await locals.supabase
-    .from('profiles')
-    .select('id, email, display_name, plan, active_org_id, avatar_url')
-    .eq('id', user.id)
-    .maybeSingle();
+	// Require email verification before accessing the app
+	if (!user.email_confirmed_at) {
+		throw redirect(303, '/verify-email');
+	}
 
-  if (profileError) throw kitError(500, profileError.message);
-  if (!profile) throw kitError(500, 'Profile not found');
+	const { data: profile, error: profileError } = await locals.supabase
+		.from('profiles')
+		.select('id, email, display_name, plan, active_org_id, avatar_url')
+		.eq('id', user.id)
+		.maybeSingle();
 
-  const { data: memberships, error: membershipsError } = await locals.supabase
-    .from('organization_members')
-    .select('organization_id, role, created_at')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: true });
+	if (profileError) throw kitError(500, profileError.message);
+	if (!profile) throw kitError(500, 'Profile not found');
 
-  if (membershipsError) throw kitError(500, membershipsError.message);
+	const { data: memberships, error: membershipsError } = await locals.supabase
+		.from('organization_members')
+		.select('organization_id, role, created_at')
+		.eq('user_id', user.id)
+		.order('created_at', { ascending: true });
 
-  if (!memberships || memberships.length === 0) {
-    throw redirect(303, '/onboarding');
-  }
+	if (membershipsError) throw kitError(500, membershipsError.message);
 
-  const organizationIds = memberships.map((item) => item.organization_id).filter((id): id is string => id != null);
-  const validOrganizationIds = new Set(organizationIds);
+	if (!memberships || memberships.length === 0) {
+		throw redirect(303, '/onboarding');
+	}
 
-  let activeOrgId = profile.active_org_id;
+	const organizationIds = memberships
+		.map((item) => item.organization_id)
+		.filter((id): id is string => id != null);
+	const validOrganizationIds = new Set(organizationIds);
 
-  if (!activeOrgId || !validOrganizationIds.has(activeOrgId)) {
-    activeOrgId = organizationIds[0];
+	let activeOrgId = profile.active_org_id;
 
-    const { error: updateProfileError } = await locals.supabase
-      .from('profiles')
-      .update({ active_org_id: activeOrgId })
-      .eq('id', user.id);
+	if (!activeOrgId || !validOrganizationIds.has(activeOrgId)) {
+		activeOrgId = organizationIds[0];
 
-    if (updateProfileError) throw kitError(500, updateProfileError.message);
-  }
+		const { error: updateProfileError } = await locals.supabase
+			.from('profiles')
+			.update({ active_org_id: activeOrgId })
+			.eq('id', user.id);
 
-  const activeMembership = memberships.find((item) => item.organization_id === activeOrgId);
+		if (updateProfileError) throw kitError(500, updateProfileError.message);
+	}
 
-  if (!activeMembership) {
-    throw kitError(403, 'Not a member of this organization');
-  }
+	const activeMembership = memberships.find((item) => item.organization_id === activeOrgId);
 
-  const { data: orgRows, error: orgRowsError } = await locals.supabase
-    .from('organizations')
-    .select('id, name')
-    .in('id', organizationIds);
+	if (!activeMembership) {
+		throw kitError(403, 'Not a member of this organization');
+	}
 
-  if (orgRowsError) throw kitError(500, orgRowsError.message);
+	const { data: orgRows, error: orgRowsError } = await locals.supabase
+		.from('organizations')
+		.select('id, name')
+		.in('id', organizationIds);
 
-  const orgMap = Object.fromEntries(
-    (orgRows ?? []).map((org) => [
-      org.id,
-      {
-        id: org.id,
-        name: org.name
-      }
-    ])
-  );
+	if (orgRowsError) throw kitError(500, orgRowsError.message);
 
-  const organizations = memberships.map((item) => ({
-    organization_id: item.organization_id,
-    role: item.role,
-    organization: item.organization_id ? orgMap[item.organization_id] ?? null : null
-  }));
+	const orgMap = Object.fromEntries(
+		(orgRows ?? []).map((org) => [
+			org.id,
+			{
+				id: org.id,
+				name: org.name
+			}
+		])
+	);
 
-  const { billing, isActive, plan } = await getOrgBilling(locals, activeOrgId!);
+	const organizations = memberships.map((item) => ({
+		organization_id: item.organization_id,
+		role: item.role,
+		organization: item.organization_id ? (orgMap[item.organization_id] ?? null) : null
+	}));
 
-  return {
-    user,
-    profile: {
-      ...profile,
-      active_org_id: activeOrgId
-    },
-    org: {
-      id: activeOrgId,
-      role: activeMembership.role
-    },
-    billing,
-    isActive,
-    plan,
-    activeOrgId,
-    organizations
-  };
+	const { billing, isActive, plan } = await getOrgBilling(locals, activeOrgId!);
+
+	return {
+		user,
+		profile: {
+			...profile,
+			active_org_id: activeOrgId
+		},
+		org: {
+			id: activeOrgId,
+			role: activeMembership.role
+		},
+		billing,
+		isActive,
+		plan,
+		activeOrgId,
+		organizations
+	};
 };

@@ -15,7 +15,11 @@
 	function formatDate(iso: string | null | undefined) {
 		if (!iso) return null;
 		try {
-			return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' });
+			return new Date(iso).toLocaleDateString(undefined, {
+				year: 'numeric',
+				month: 'short',
+				day: '2-digit'
+			});
 		} catch {
 			return iso;
 		}
@@ -28,7 +32,10 @@
 			const res = await fetch('/api/stripe/checkout', { method: 'POST' });
 			if (!res.ok) throw new Error(await res.text().catch(() => 'Checkout failed'));
 			const json = await res.json().catch(() => null);
-			if (json?.url) { window.location.href = json.url; return; }
+			if (json?.url) {
+				window.location.href = json.url;
+				return;
+			}
 			throw new Error('Checkout URL missing');
 		} catch (e: any) {
 			addToast(e?.message ?? 'Checkout failed', 'error');
@@ -44,7 +51,10 @@
 			const res = await fetch('/api/stripe/portal', { method: 'POST' });
 			if (!res.ok) throw new Error(await res.text().catch(() => 'Portal failed'));
 			const json = await res.json().catch(() => null);
-			if (json?.url) { window.location.href = json.url; return; }
+			if (json?.url) {
+				window.location.href = json.url;
+				return;
+			}
 			throw new Error('Portal URL missing');
 		} catch (e: any) {
 			addToast(e?.message ?? 'Portal failed', 'error');
@@ -90,40 +100,56 @@
 
 		<div class="mt-6">
 			{#if data?.isActive}
-				<Button variant="secondary" onclick={manageBilling} {loading}>
-					Manage Billing
-				</Button>
+				<Button variant="secondary" onclick={manageBilling} {loading}>Manage Billing</Button>
 			{:else}
-				<Button onclick={subscribe} {loading}>
-					Upgrade to Pro
-				</Button>
+				<Button onclick={subscribe} {loading}>Upgrade to Pro</Button>
 			{/if}
 		</div>
 	</Card>
 
 	<!-- Plan comparison -->
 	<div class="grid gap-6 sm:grid-cols-2">
-		<div class="rounded-xl border border-border bg-surface p-6 {planLabel === 'free' ? 'ring-2 ring-brand-500' : ''}">
+		<div
+			class="rounded-xl border border-border bg-surface p-6 {planLabel === 'free'
+				? 'ring-2 ring-brand-500'
+				: ''}"
+		>
 			<h3 class="text-lg font-semibold text-text-primary">Free</h3>
 			<p class="mt-1 text-sm text-text-secondary">For getting started</p>
 			<div class="mt-4 space-y-2 text-sm text-text-secondary">
-				<p class="flex items-center gap-2"><span class="text-success">&#10003;</span> 3 team members</p>
+				<p class="flex items-center gap-2">
+					<span class="text-success">&#10003;</span> 3 team members
+				</p>
 				<p class="flex items-center gap-2"><span class="text-success">&#10003;</span> 3 projects</p>
-				<p class="flex items-center gap-2"><span class="text-success">&#10003;</span> Core features</p>
+				<p class="flex items-center gap-2">
+					<span class="text-success">&#10003;</span> Core features
+				</p>
 			</div>
 		</div>
 
-		<div class="rounded-xl border border-border bg-surface p-6 {planLabel === 'pro' ? 'ring-2 ring-brand-500' : ''}">
+		<div
+			class="rounded-xl border border-border bg-surface p-6 {planLabel === 'pro'
+				? 'ring-2 ring-brand-500'
+				: ''}"
+		>
 			<div class="flex items-center gap-2">
 				<h3 class="text-lg font-semibold text-text-primary">Pro</h3>
 				<Badge variant="brand">Recommended</Badge>
 			</div>
 			<p class="mt-1 text-sm text-text-secondary">For growing teams</p>
 			<div class="mt-4 space-y-2 text-sm text-text-secondary">
-				<p class="flex items-center gap-2"><span class="text-success">&#10003;</span> 10 team members</p>
-				<p class="flex items-center gap-2"><span class="text-success">&#10003;</span> Unlimited projects</p>
-				<p class="flex items-center gap-2"><span class="text-success">&#10003;</span> Priority support</p>
-				<p class="flex items-center gap-2"><span class="text-success">&#10003;</span> Premium features</p>
+				<p class="flex items-center gap-2">
+					<span class="text-success">&#10003;</span> 10 team members
+				</p>
+				<p class="flex items-center gap-2">
+					<span class="text-success">&#10003;</span> Unlimited projects
+				</p>
+				<p class="flex items-center gap-2">
+					<span class="text-success">&#10003;</span> Priority support
+				</p>
+				<p class="flex items-center gap-2">
+					<span class="text-success">&#10003;</span> Premium features
+				</p>
 			</div>
 		</div>
 	</div>

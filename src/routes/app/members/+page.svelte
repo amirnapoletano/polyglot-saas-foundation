@@ -25,7 +25,10 @@
 
 	async function invite() {
 		const normalizedEmail = email.trim().toLowerCase();
-		if (!normalizedEmail) { addToast('Email is required.', 'error'); return; }
+		if (!normalizedEmail) {
+			addToast('Email is required.', 'error');
+			return;
+		}
 
 		loading = true;
 		try {
@@ -35,7 +38,10 @@
 				headers: { 'Content-Type': 'application/json' }
 			});
 			const result = await res.json().catch(() => null);
-			if (!res.ok) { addToast(result?.message ?? 'Failed to create invite', 'error'); return; }
+			if (!res.ok) {
+				addToast(result?.message ?? 'Failed to create invite', 'error');
+				return;
+			}
 
 			inviteLink = result?.invite_link ? `${window.location.origin}${result.invite_link}` : '';
 			addToast('Invite created successfully.', 'success');
@@ -62,7 +68,10 @@
 		try {
 			const res = await fetch(`/api/invites/${inviteId}`, { method: 'DELETE' });
 			const result = await res.json().catch(() => null);
-			if (!res.ok) { addToast(result?.message ?? 'Failed to cancel invite.', 'error'); return; }
+			if (!res.ok) {
+				addToast(result?.message ?? 'Failed to cancel invite.', 'error');
+				return;
+			}
 			addToast('Invite cancelled.', 'success');
 			await invalidateAll();
 		} catch {
@@ -74,7 +83,10 @@
 		try {
 			const res = await fetch(`/api/members/${memberUserId}`, { method: 'DELETE' });
 			const result = await res.json().catch(() => null);
-			if (!res.ok) { addToast(result?.message ?? 'Failed to remove member.', 'error'); return; }
+			if (!res.ok) {
+				addToast(result?.message ?? 'Failed to remove member.', 'error');
+				return;
+			}
 			addToast('Member removed.', 'success');
 			await invalidateAll();
 		} catch {
@@ -116,7 +128,8 @@
 <div class="space-y-8">
 	<PageHeader
 		title="Team Members"
-		subtitle="Manage access, invites, and roles. Plan: {data.plan ?? 'free'} · Seats: {data.usedSeats ?? 0}/{data.seatLimit ?? 0}"
+		subtitle="Manage access, invites, and roles. Plan: {data.plan ??
+			'free'} · Seats: {data.usedSeats ?? 0}/{data.seatLimit ?? 0}"
 		breadcrumbs={[{ label: 'App', href: '/app/dashboard' }, { label: 'Members' }]}
 	/>
 
@@ -126,9 +139,18 @@
 		{#if canManageTeam}
 			<div class="mt-4 flex gap-3 flex-wrap">
 				<div class="flex-1 min-w-[240px]">
-					<Input placeholder="email@example.com" bind:value={email} type="email" autocomplete="off" />
+					<Input
+						placeholder="email@example.com"
+						bind:value={email}
+						type="email"
+						autocomplete="off"
+					/>
 				</div>
-				<Button onclick={invite} {loading} disabled={(data.usedSeats ?? 0) >= (data.seatLimit ?? 0)}>
+				<Button
+					onclick={invite}
+					{loading}
+					disabled={(data.usedSeats ?? 0) >= (data.seatLimit ?? 0)}
+				>
 					Send Invite
 				</Button>
 			</div>
@@ -142,8 +164,12 @@
 		{#if inviteLink}
 			<div class="mt-4 rounded-lg border border-border bg-surface-secondary p-4">
 				<p class="text-sm font-medium text-text-primary mb-2">Invite link</p>
-				<code class="block text-xs bg-surface-tertiary rounded-lg p-3 break-all text-text-secondary">{inviteLink}</code>
-				<Button variant="secondary" size="sm" onclick={copyInviteLink} class="mt-3">Copy link</Button>
+				<code class="block text-xs bg-surface-tertiary rounded-lg p-3 break-all text-text-secondary"
+					>{inviteLink}</code
+				>
+				<Button variant="secondary" size="sm" onclick={copyInviteLink} class="mt-3"
+					>Copy link</Button
+				>
 			</div>
 		{/if}
 	</Card>
@@ -152,7 +178,11 @@
 	<Card>
 		<h2 class="text-lg font-semibold text-text-primary">Members</h2>
 		{#if data.members.length === 0}
-			<EmptyState icon="👥" title="No members yet" description="Invite your first team member above." />
+			<EmptyState
+				icon="👥"
+				title="No members yet"
+				description="Invite your first team member above."
+			/>
 		{:else}
 			<div class="mt-4 divide-y divide-border">
 				{#each data.members as member}
@@ -175,7 +205,8 @@
 									class="rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
 									value={member.role}
 									disabled={member.role === 'owner'}
-									onchange={(e) => changeRole(member.user_id!, (e.currentTarget as HTMLSelectElement).value)}
+									onchange={(e) =>
+										changeRole(member.user_id!, (e.currentTarget as HTMLSelectElement).value)}
 								>
 									<option value="owner">Owner</option>
 									<option value="admin">Admin</option>
@@ -186,7 +217,14 @@
 							{/if}
 
 							{#if canManageTeam && member.role !== 'owner'}
-								<Button variant="danger" size="sm" onclick={() => { pendingRemoveId = member.user_id!; confirmRemoveOpen = true; }}>Remove</Button>
+								<Button
+									variant="danger"
+									size="sm"
+									onclick={() => {
+										pendingRemoveId = member.user_id!;
+										confirmRemoveOpen = true;
+									}}>Remove</Button
+								>
 							{/if}
 						</div>
 					</div>
@@ -199,7 +237,11 @@
 	<Card>
 		<h2 class="text-lg font-semibold text-text-primary">Pending Invitations</h2>
 		{#if data.invites.length === 0}
-			<EmptyState icon="✉️" title="No pending invites" description="Invited members will appear here until they accept." />
+			<EmptyState
+				icon="✉️"
+				title="No pending invites"
+				description="Invited members will appear here until they accept."
+			/>
 		{:else}
 			<div class="mt-4 divide-y divide-border">
 				{#each data.invites as inv}
@@ -216,7 +258,14 @@
 						<div class="flex items-center gap-2 shrink-0">
 							<Badge variant="warning">Invited</Badge>
 							{#if canManageTeam}
-								<Button variant="danger" size="sm" onclick={() => { pendingCancelId = inv.id; confirmCancelOpen = true; }}>Cancel</Button>
+								<Button
+									variant="danger"
+									size="sm"
+									onclick={() => {
+										pendingCancelId = inv.id;
+										confirmCancelOpen = true;
+									}}>Cancel</Button
+								>
 							{/if}
 						</div>
 					</div>
@@ -231,8 +280,13 @@
 	title="Remove member"
 	message="This person will lose access to the workspace immediately. They can be re-invited later."
 	confirmLabel="Remove member"
-	onconfirm={() => { removeMember(pendingRemoveId); confirmRemoveOpen = false; }}
-	oncancel={() => { pendingRemoveId = ''; }}
+	onconfirm={() => {
+		removeMember(pendingRemoveId);
+		confirmRemoveOpen = false;
+	}}
+	oncancel={() => {
+		pendingRemoveId = '';
+	}}
 />
 
 <ConfirmModal
@@ -240,6 +294,11 @@
 	title="Cancel invite"
 	message="This invite link will no longer work. You can send a new invite later."
 	confirmLabel="Cancel invite"
-	onconfirm={() => { cancelInvite(pendingCancelId); confirmCancelOpen = false; }}
-	oncancel={() => { pendingCancelId = ''; }}
+	onconfirm={() => {
+		cancelInvite(pendingCancelId);
+		confirmCancelOpen = false;
+	}}
+	oncancel={() => {
+		pendingCancelId = '';
+	}}
 />

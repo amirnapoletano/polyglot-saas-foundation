@@ -18,7 +18,12 @@ npm run lint         # Prettier + ESLint checks
 npm run format       # Auto-format with Prettier
 ```
 
-No test framework is configured. No CI/CD pipeline exists.
+```bash
+npm run test         # Run Vitest unit tests
+npm run test:watch   # Run tests in watch mode
+```
+
+CI runs on GitHub Actions (push to main + PRs): lint, typecheck, build, test.
 
 ## Tech Stack
 
@@ -32,13 +37,13 @@ No test framework is configured. No CI/CD pipeline exists.
 
 This project uses **Svelte 5 exclusively**. Never use Svelte 4 patterns:
 
-| Svelte 4 (DO NOT USE)          | Svelte 5 (USE THIS)              |
-|--------------------------------|----------------------------------|
-| `export let prop`              | `let { prop } = $props()`        |
-| `<slot />`                     | `{@render children()}`           |
-| `on:click={handler}`           | `onclick={handler}`              |
-| `$: derived = ...`             | `let derived = $derived(...)`    |
-| `let x = writable(...)`        | `let x = $state(...)`            |
+| Svelte 4 (DO NOT USE)   | Svelte 5 (USE THIS)           |
+| ----------------------- | ----------------------------- |
+| `export let prop`       | `let { prop } = $props()`     |
+| `<slot />`              | `{@render children()}`        |
+| `on:click={handler}`    | `onclick={handler}`           |
+| `$: derived = ...`      | `let derived = $derived(...)` |
+| `let x = writable(...)` | `let x = $state(...)`         |
 
 ## Architecture
 

@@ -106,4 +106,28 @@
 			{/each}
 		</div>
 	</Card>
+
+	{#if data.totalPages > 1}
+		<div class="mt-4 flex items-center justify-between">
+			<p class="text-sm text-text-tertiary">Page {data.page} of {data.totalPages}</p>
+			<div class="flex gap-2">
+				{#if data.page > 1}
+					<a
+						href="?page={data.page - 1}"
+						class="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors"
+					>
+						Previous
+					</a>
+				{/if}
+				{#if data.page < data.totalPages}
+					<a
+						href="?page={data.page + 1}"
+						class="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text-primary hover:bg-surface-secondary transition-colors"
+					>
+						Next
+					</a>
+				{/if}
+			</div>
+		</div>
+	{/if}
 {/if}

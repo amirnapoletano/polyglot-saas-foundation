@@ -1,7 +1,7 @@
-export function welcomeEmail(params: {
-	displayName?: string;
-	dashboardUrl: string;
-}): { subject: string; html: string } {
+export function welcomeEmail(params: { displayName?: string; dashboardUrl: string }): {
+	subject: string;
+	html: string;
+} {
 	const { displayName, dashboardUrl } = params;
 	const greeting = displayName ? `Hi ${displayName}` : 'Welcome';
 

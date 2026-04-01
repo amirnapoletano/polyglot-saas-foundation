@@ -2,122 +2,121 @@ import { error, json } from '@sveltejs/kit';
 import { logActivity } from '$lib/server/audit';
 
 export const DELETE = async ({ params, locals }) => {
-  const { session, user } = await locals.safeGetSession();
+	const { session, user } = await locals.safeGetSession();
 
-  if (!session || !user) {
-    throw error(401, 'Unauthorized');
-  }
+	if (!session || !user) {
+		throw error(401, 'Unauthorized');
+	}
 
-  const targetUserId = params.memberUserId;
-  if (!targetUserId) {
-    throw error(400, 'Missing member user id');
-  }
+	const targetUserId = params.memberUserId;
+	if (!targetUserId) {
+		throw error(400, 'Missing member user id');
+	}
 
-  // Get current user's active organization
-  const { data: profile, error: profileError } = await locals.supabase
-    .from('profiles')
-    .select('active_org_id')
-    .eq('id', user.id)
-    .maybeSingle();
+	// Get current user's active organization
+	const { data: profile, error: profileError } = await locals.supabase
+		.from('profiles')
+		.select('active_org_id')
+		.eq('id', user.id)
+		.maybeSingle();
 
-  if (profileError) {
-    throw error(500, profileError.message);
-  }
+	if (profileError) {
+		throw error(500, profileError.message);
+	}
 
-  const orgId = profile?.active_org_id;
-  if (!orgId) {
-    throw error(400, 'No active organization');
-  }
+	const orgId = profile?.active_org_id;
+	if (!orgId) {
+		throw error(400, 'No active organization');
+	}
 
-  // Check current user's role
-  const { data: currentMembership, error: currentMembershipError } =
-    await locals.supabase
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', orgId)
-      .eq('user_id', user.id)
-      .maybeSingle();
+	// Check current user's role
+	const { data: currentMembership, error: currentMembershipError } = await locals.supabase
+		.from('organization_members')
+		.select('role')
+		.eq('organization_id', orgId)
+		.eq('user_id', user.id)
+		.maybeSingle();
 
-  if (currentMembershipError) {
-    throw error(500, currentMembershipError.message);
-  }
+	if (currentMembershipError) {
+		throw error(500, currentMembershipError.message);
+	}
 
-  if (!currentMembership || !currentMembership.role || !['owner', 'admin'].includes(currentMembership.role)) {
-    throw error(403, 'Not allowed to remove members');
-  }
+	if (
+		!currentMembership ||
+		!currentMembership.role ||
+		!['owner', 'admin'].includes(currentMembership.role)
+	) {
+		throw error(403, 'Not allowed to remove members');
+	}
 
-  // Prevent removing yourself
-  if (targetUserId === user.id) {
-    throw error(400, 'You cannot remove yourself');
-  }
+	// Prevent removing yourself
+	if (targetUserId === user.id) {
+		throw error(400, 'You cannot remove yourself');
+	}
 
-  // Check target membership
-  const { data: targetMembership, error: targetMembershipError } =
-    await locals.supabase
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', orgId)
-      .eq('user_id', targetUserId)
-      .maybeSingle();
+	// Check target membership
+	const { data: targetMembership, error: targetMembershipError } = await locals.supabase
+		.from('organization_members')
+		.select('role')
+		.eq('organization_id', orgId)
+		.eq('user_id', targetUserId)
+		.maybeSingle();
 
-  if (targetMembershipError) {
-    throw error(500, targetMembershipError.message);
-  }
+	if (targetMembershipError) {
+		throw error(500, targetMembershipError.message);
+	}
 
-  if (!targetMembership) {
-    throw error(404, 'Member not found');
-  }
+	if (!targetMembership) {
+		throw error(404, 'Member not found');
+	}
 
-  // Prevent removing the last owner
-  if (targetMembership.role === 'owner') {
-    const { count, error: ownerCountError } = await locals.supabase
-      .from('organization_members')
-      .select('*', { count: 'exact', head: true })
-      .eq('organization_id', orgId)
-      .eq('role', 'owner');
+	// Prevent removing the last owner
+	if (targetMembership.role === 'owner') {
+		const { count, error: ownerCountError } = await locals.supabase
+			.from('organization_members')
+			.select('*', { count: 'exact', head: true })
+			.eq('organization_id', orgId)
+			.eq('role', 'owner');
 
-    if (ownerCountError) {
-      throw error(500, ownerCountError.message);
-    }
+		if (ownerCountError) {
+			throw error(500, ownerCountError.message);
+		}
 
-    if ((count ?? 0) <= 1) {
-      throw error(400, 'You cannot remove the last owner');
-    }
-  }
+		if ((count ?? 0) <= 1) {
+			throw error(400, 'You cannot remove the last owner');
+		}
+	}
 
-  // Remove membership
-  const { error: deleteError } = await locals.supabase
-    .from('organization_members')
-    .delete()
-    .eq('organization_id', orgId)
-    .eq('user_id', targetUserId);
+	// Remove membership
+	const { error: deleteError } = await locals.supabase
+		.from('organization_members')
+		.delete()
+		.eq('organization_id', orgId)
+		.eq('user_id', targetUserId);
 
-  if (deleteError) {
-    throw error(500, deleteError.message);
-  }
+	if (deleteError) {
+		throw error(500, deleteError.message);
+	}
 
-  // If the removed user had this org as active_org_id, clear it
-  const { data: targetProfile } = await locals.supabase
-    .from('profiles')
-    .select('active_org_id')
-    .eq('id', targetUserId)
-    .maybeSingle();
+	// If the removed user had this org as active_org_id, clear it
+	const { data: targetProfile } = await locals.supabase
+		.from('profiles')
+		.select('active_org_id')
+		.eq('id', targetUserId)
+		.maybeSingle();
 
-  if (targetProfile?.active_org_id === orgId) {
-    await locals.supabase
-      .from('profiles')
-      .update({ active_org_id: null })
-      .eq('id', targetUserId);
-  }
+	if (targetProfile?.active_org_id === orgId) {
+		await locals.supabase.from('profiles').update({ active_org_id: null }).eq('id', targetUserId);
+	}
 
-  await logActivity(locals.supabase, {
-    organizationId: orgId,
-    actorUserId: user.id,
-    action: 'member.removed',
-    resourceType: 'member',
-    resourceId: targetUserId,
-    metadata: { removed_role: targetMembership.role }
-  });
+	await logActivity(locals.supabase, {
+		organizationId: orgId,
+		actorUserId: user.id,
+		action: 'member.removed',
+		resourceType: 'member',
+		resourceId: targetUserId,
+		metadata: { removed_role: targetMembership.role }
+	});
 
-  return json({ ok: true });
+	return json({ ok: true });
 };

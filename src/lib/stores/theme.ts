@@ -11,7 +11,8 @@ function getInitialTheme(): Theme {
 function applyTheme(theme: Theme) {
 	if (!browser) return;
 	const isDark =
-		theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+		theme === 'dark' ||
+		(theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 	document.documentElement.classList.toggle('dark', isDark);
 }
 

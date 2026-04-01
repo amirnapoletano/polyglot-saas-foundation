@@ -56,7 +56,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 	const body = await request.json();
 	const name = String(body.name || '').trim();
-	if (!name || name.length > 100) return new Response('Name is required (max 100 chars)', { status: 400 });
+	if (!name || name.length > 100)
+		return new Response('Name is required (max 100 chars)', { status: 400 });
 
 	const { key, prefix, hash } = generateApiKey();
 

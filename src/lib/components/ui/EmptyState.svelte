@@ -13,7 +13,9 @@
 
 <div class="flex flex-col items-center justify-center py-12 px-4 text-center">
 	{#if icon}
-		<div class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-tertiary text-2xl">
+		<div
+			class="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-surface-tertiary text-2xl"
+		>
 			{icon}
 		</div>
 	{/if}
