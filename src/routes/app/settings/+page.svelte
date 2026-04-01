@@ -143,6 +143,23 @@
 		</form>
 
 		<div class="mt-6 pt-6 border-t border-border">
+			<div class="flex items-center justify-between py-3">
+				<div>
+					<p class="text-sm font-medium text-text-primary">Two-factor authentication</p>
+					<p class="text-xs text-text-secondary">
+						Add an extra layer of security with an authenticator app.
+					</p>
+				</div>
+				<a
+					href="/app/settings/mfa"
+					class="rounded-lg border border-border bg-surface-secondary px-3 py-1.5 text-sm font-medium text-text-primary hover:bg-surface-tertiary transition-colors"
+				>
+					Manage 2FA
+				</a>
+			</div>
+		</div>
+
+		<div class="mt-6 pt-6 border-t border-border">
 			<form method="POST" action="?/changePassword" use:enhance class="space-y-4">
 				<Input
 					label="New password"

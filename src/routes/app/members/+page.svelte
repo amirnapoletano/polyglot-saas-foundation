@@ -19,9 +19,22 @@
 	let confirmCancelOpen = $state(false);
 	let pendingRemoveId = $state('');
 	let pendingCancelId = $state('');
+	let searchQuery = $state('');
 
 	const canManageTeam = data.currentUserRole === 'owner' || data.currentUserRole === 'admin';
 	const canChangeRoles = data.currentUserRole === 'owner';
+
+	let filteredMembers = $derived(
+		searchQuery.trim()
+			? data.members.filter((m) => {
+					const q = searchQuery.toLowerCase();
+					return (
+						m.profile.display_name?.toLowerCase().includes(q) ||
+						m.profile.email?.toLowerCase().includes(q)
+					);
+				})
+			: data.members
+	);
 
 	async function invite() {
 		const normalizedEmail = email.trim().toLowerCase();
@@ -176,16 +189,25 @@
 
 	<!-- Members list -->
 	<Card>
-		<h2 class="text-lg font-semibold text-text-primary">Members</h2>
+		<div class="flex items-center justify-between gap-4">
+			<h2 class="text-lg font-semibold text-text-primary">Members</h2>
+			{#if data.members.length > 0}
+				<div class="w-64">
+					<Input placeholder="Search by name or email…" bind:value={searchQuery} />
+				</div>
+			{/if}
+		</div>
 		{#if data.members.length === 0}
 			<EmptyState
 				icon="👥"
 				title="No members yet"
 				description="Invite your first team member above."
 			/>
+		{:else if filteredMembers.length === 0 && searchQuery.trim()}
+			<p class="mt-4 text-sm text-text-tertiary">No members matching "{searchQuery}"</p>
 		{:else}
 			<div class="mt-4 divide-y divide-border">
-				{#each data.members as member}
+				{#each filteredMembers as member}
 					<div class="flex items-center justify-between gap-4 py-3">
 						<div class="flex items-center gap-3 min-w-0">
 							<Avatar name={member.profile.display_name ?? member.profile.email} size="md" />

@@ -6,6 +6,15 @@
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
 	let { data } = $props();
+	let filterCategory = $state('all');
+
+	const categories = ['all', 'member', 'invite', 'org', 'billing'] as const;
+
+	let filteredLogs = $derived(
+		filterCategory === 'all'
+			? data.logs
+			: data.logs.filter((entry) => entry.action.startsWith(filterCategory + '.'))
+	);
 
 	const actionLabels: Record<string, string> = {
 		'member.invited': 'invited a member',
@@ -85,26 +94,44 @@
 	</Card>
 {:else}
 	<Card>
-		<div class="divide-y divide-border">
-			{#each data.logs as entry}
-				<div class="flex items-start gap-4 py-4 first:pt-0 last:pb-0">
-					<Avatar name={getActorName(entry.actor_user_id)} size="sm" class="mt-0.5" />
-					<div class="flex-1 min-w-0">
-						<p class="text-sm text-text-primary">
-							<span class="font-medium">{getActorName(entry.actor_user_id)}</span>
-							{' '}{actionLabels[entry.action] ?? entry.action}
-							{#if getDetail(entry)}
-								<span class="text-text-secondary"> — {getDetail(entry)}</span>
-							{/if}
-						</p>
-						<p class="mt-0.5 text-xs text-text-tertiary">{timeAgo(entry.created_at)}</p>
-					</div>
-					<Badge variant={actionVariants[entry.action] ?? 'default'}>
-						{entry.action.split('.')[0]}
-					</Badge>
-				</div>
+		<div class="mb-4 flex items-center gap-2">
+			<span class="text-sm text-text-secondary">Filter:</span>
+			{#each categories as cat}
+				<button
+					class="rounded-full px-3 py-1 text-xs font-medium transition-colors {filterCategory ===
+					cat
+						? 'bg-brand-600 text-white'
+						: 'bg-surface-secondary text-text-secondary hover:text-text-primary'}"
+					onclick={() => (filterCategory = cat)}
+				>
+					{cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+				</button>
 			{/each}
 		</div>
+		{#if filteredLogs.length === 0}
+			<p class="py-4 text-sm text-text-tertiary text-center">No activity in this category.</p>
+		{:else}
+			<div class="divide-y divide-border">
+				{#each filteredLogs as entry}
+					<div class="flex items-start gap-4 py-4 first:pt-0 last:pb-0">
+						<Avatar name={getActorName(entry.actor_user_id)} size="sm" class="mt-0.5" />
+						<div class="flex-1 min-w-0">
+							<p class="text-sm text-text-primary">
+								<span class="font-medium">{getActorName(entry.actor_user_id)}</span>
+								{' '}{actionLabels[entry.action] ?? entry.action}
+								{#if getDetail(entry)}
+									<span class="text-text-secondary"> — {getDetail(entry)}</span>
+								{/if}
+							</p>
+							<p class="mt-0.5 text-xs text-text-tertiary">{timeAgo(entry.created_at)}</p>
+						</div>
+						<Badge variant={actionVariants[entry.action] ?? 'default'}>
+							{entry.action.split('.')[0]}
+						</Badge>
+					</div>
+				{/each}
+			</div>
+		{/if}
 	</Card>
 
 	{#if data.totalPages > 1}

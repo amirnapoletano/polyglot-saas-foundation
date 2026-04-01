@@ -17,6 +17,13 @@
 	let revokeOpen = $state(false);
 	let revoking = $state(false);
 	let copied = $state(false);
+	let searchQuery = $state('');
+
+	let filteredKeys = $derived(
+		searchQuery.trim()
+			? data.keys.filter((k) => k.name.toLowerCase().includes(searchQuery.toLowerCase()))
+			: data.keys
+	);
 
 	async function createKey() {
 		if (!keyName.trim()) return;
@@ -189,37 +196,46 @@
 				<p class="text-sm text-text-secondary">No API keys yet.</p>
 			</div>
 		{:else}
-			<div class="mt-4 divide-y divide-border">
-				{#each data.keys as key}
-					<div class="flex items-center justify-between py-3">
-						<div class="min-w-0 flex-1">
-							<p class="text-sm font-medium text-text-primary">{key.name}</p>
-							<div class="flex items-center gap-3 mt-0.5">
-								<code class="text-xs text-text-tertiary font-mono">{key.key_prefix}</code>
-								<span class="text-xs text-text-tertiary">Created {timeAgo(key.created_at)}</span>
-								<span class="text-xs text-text-tertiary"
-									>Last used: {timeAgo(key.last_used_at)}</span
-								>
-								{#if key.expires_at}
-									<span class="text-xs text-amber-600"
-										>Expires {new Date(key.expires_at).toLocaleDateString()}</span
+			{#if data.keys.length > 3}
+				<div class="mt-4 w-64">
+					<Input placeholder="Search keys by name…" bind:value={searchQuery} />
+				</div>
+			{/if}
+			{#if filteredKeys.length === 0 && searchQuery.trim()}
+				<p class="mt-4 text-sm text-text-tertiary">No keys matching "{searchQuery}"</p>
+			{:else}
+				<div class="mt-4 divide-y divide-border">
+					{#each filteredKeys as key}
+						<div class="flex items-center justify-between py-3">
+							<div class="min-w-0 flex-1">
+								<p class="text-sm font-medium text-text-primary">{key.name}</p>
+								<div class="flex items-center gap-3 mt-0.5">
+									<code class="text-xs text-text-tertiary font-mono">{key.key_prefix}</code>
+									<span class="text-xs text-text-tertiary">Created {timeAgo(key.created_at)}</span>
+									<span class="text-xs text-text-tertiary"
+										>Last used: {timeAgo(key.last_used_at)}</span
 									>
-								{/if}
+									{#if key.expires_at}
+										<span class="text-xs text-amber-600"
+											>Expires {new Date(key.expires_at).toLocaleDateString()}</span
+										>
+									{/if}
+								</div>
 							</div>
+							{#if data.currentUserRole === 'owner' || data.currentUserRole === 'admin'}
+								<Button
+									variant="danger"
+									size="sm"
+									onclick={() => {
+										revokeKeyId = key.id;
+										revokeOpen = true;
+									}}>Revoke</Button
+								>
+							{/if}
 						</div>
-						{#if data.currentUserRole === 'owner' || data.currentUserRole === 'admin'}
-							<Button
-								variant="danger"
-								size="sm"
-								onclick={() => {
-									revokeKeyId = key.id;
-									revokeOpen = true;
-								}}>Revoke</Button
-							>
-						{/if}
-					</div>
-				{/each}
-			</div>
+					{/each}
+				</div>
+			{/if}
 		{/if}
 	</Card>
 

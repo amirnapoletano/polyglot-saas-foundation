@@ -13,6 +13,12 @@ export const load = async ({ locals }) => {
 		throw redirect(303, '/verify-email');
 	}
 
+	// MFA check: if user has enrolled TOTP factors but session is only AAL1, redirect to challenge
+	const { data: aalData } = await locals.supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+	if (aalData && aalData.currentLevel === 'aal1' && aalData.nextLevel === 'aal2') {
+		throw redirect(303, '/mfa-challenge');
+	}
+
 	const { data: profile, error: profileError } = await locals.supabase
 		.from('profiles')
 		.select('id, email, display_name, plan, active_org_id, avatar_url')
