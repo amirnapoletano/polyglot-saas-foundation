@@ -18,7 +18,7 @@
 
 {#if variant === 'list'}
 	<div class="space-y-3 {className}" aria-hidden="true">
-		{#each Array(lines) as _}
+		{#each Array(lines)}
 			<div class="flex items-center gap-3">
 				<div class="h-8 w-8 animate-pulse rounded-full bg-surface-tertiary"></div>
 				<div class="flex-1 space-y-1.5">

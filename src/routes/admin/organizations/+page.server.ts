@@ -19,8 +19,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	// Get member counts and billing for each org
 	const orgIds = (orgs ?? []).map((o) => o.id);
-	let memberCounts: Record<string, number> = {};
-	let billingMap: Record<string, string> = {};
+	const memberCounts: Record<string, number> = {};
+	const billingMap: Record<string, string> = {};
 
 	if (orgIds.length > 0) {
 		const { data: members } = await locals.supabase

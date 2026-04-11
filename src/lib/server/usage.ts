@@ -5,7 +5,7 @@ export async function requireProjectLimit({
 	organizationId,
 	plan
 }: {
-	locals: any;
+	locals: { supabase: import('@supabase/supabase-js').SupabaseClient };
 	organizationId: string;
 	plan: string;
 }) {

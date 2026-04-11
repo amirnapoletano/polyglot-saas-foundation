@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		query = query.or(`email.ilike.%${search}%,display_name.ilike.%${search}%`);
 	}
 
-	const { data: users, count, error } = await query;
+	const { data: users, count } = await query;
 
 	return {
 		users: users ?? [],

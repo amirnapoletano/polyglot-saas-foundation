@@ -17,8 +17,8 @@ export const POST: RequestHandler = async ({ locals, url }) => {
 	const userId = user.id;
 
 	// Resolve org (server-side only)
-	let organizationId: string | null =
-		(locals as any)?.org?.id ?? (locals as any)?.organization?.id ?? null;
+	const localsExt = locals as Record<string, unknown> & { org?: { id?: string }; organization?: { id?: string } };
+	let organizationId: string | null = localsExt?.org?.id ?? localsExt?.organization?.id ?? null;
 
 	if (!organizationId) {
 		const { data: membership, error } = await locals.supabase

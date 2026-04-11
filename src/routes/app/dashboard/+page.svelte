@@ -7,8 +7,10 @@
 	let { data } = $props();
 
 	const orgName = $derived(
-		data.organizations?.find((o: any) => o.organization_id === data.activeOrgId)?.organization
-			?.name ?? 'Your workspace'
+		data.organizations?.find(
+			(o: { organization_id: string; organization?: { name?: string } }) =>
+				o.organization_id === data.activeOrgId
+		)?.organization?.name ?? 'Your workspace'
 	);
 
 	const actionLabels: Record<string, string> = {
@@ -61,16 +63,6 @@
 				: 'No subscription'
 	);
 
-	const billingVariant = $derived(
-		data.billing?.status === 'active'
-			? data.billing.cancel_at_period_end
-				? 'warning'
-				: 'success'
-			: data.billing?.status === 'trialing'
-				? 'brand'
-				: 'default'
-	);
-
 	const nextBilling = $derived(
 		data.billing?.current_period_end
 			? new Date(data.billing.current_period_end).toLocaleDateString()
@@ -108,7 +100,7 @@
 		<Card>
 			<div class="flex items-center justify-between">
 				<p class="text-sm font-medium text-text-secondary">Team</p>
-				<Badge>{(data.org as any)?.role ?? 'member'}</Badge>
+				<Badge>{(data.org as { role?: string })?.role ?? 'member'}</Badge>
 			</div>
 			<p class="mt-3 text-2xl font-bold text-text-primary">{data.memberCount}</p>
 			<p class="mt-1 text-xs text-text-tertiary">

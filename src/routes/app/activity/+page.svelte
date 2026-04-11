@@ -63,7 +63,7 @@
 		return profile?.display_name ?? profile?.email ?? 'Unknown user';
 	}
 
-	function getDetail(entry: any): string | null {
+	function getDetail(entry: { metadata?: Record<string, string> | null }): string | null {
 		const meta = entry.metadata;
 		if (!meta) return null;
 		if (meta.email) return meta.email;

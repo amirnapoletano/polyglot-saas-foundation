@@ -63,7 +63,7 @@ export async function getOrgBilling(
 		.eq('organization_id', organizationId)
 		.maybeSingle();
 
-	if (error && !isMissingTableError(error as any)) {
+	if (error && !isMissingTableError(error)) {
 		throw error;
 	}
 

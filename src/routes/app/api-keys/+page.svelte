@@ -15,7 +15,6 @@
 	let newKey = $state<string | null>(null);
 	let revokeKeyId = $state<string | null>(null);
 	let revokeOpen = $state(false);
-	let revoking = $state(false);
 	let copied = $state(false);
 	let searchQuery = $state('');
 
@@ -54,7 +53,6 @@
 
 	async function revokeKey() {
 		if (!revokeKeyId) return;
-		revoking = true;
 		try {
 			const res = await fetch(`/api/api-keys/${revokeKeyId}/revoke`, { method: 'POST' });
 			if (!res.ok) {
@@ -66,8 +64,6 @@
 			await invalidateAll();
 		} catch {
 			addToast('Failed to revoke key.', 'error');
-		} finally {
-			revoking = false;
 		}
 	}
 

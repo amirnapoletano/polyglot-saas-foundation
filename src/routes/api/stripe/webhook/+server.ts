@@ -85,8 +85,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	let event: Stripe.Event;
 	try {
 		event = stripe.webhooks.constructEvent(body, sig, STRIPE_WEBHOOK_SECRET);
-	} catch (err: any) {
-		return new Response(`Webhook error: ${err?.message ?? 'Invalid signature'}`, {
+	} catch (err: unknown) {
+		const message = err instanceof Error ? err.message : 'Invalid signature';
+		return new Response(`Webhook error: ${message}`, {
 			status: 400
 		});
 	}

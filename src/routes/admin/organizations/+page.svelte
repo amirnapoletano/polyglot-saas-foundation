@@ -11,9 +11,9 @@
 		return new Date(d).toLocaleDateString();
 	}
 
-	const statusVariant: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
+	const statusVariant: Record<string, 'success' | 'warning' | 'error' | 'default' | 'brand'> = {
 		active: 'success',
-		trialing: 'brand' as any,
+		trialing: 'brand',
 		canceled: 'error',
 		past_due: 'warning'
 	};

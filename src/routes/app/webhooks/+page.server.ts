@@ -1,5 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
-import { fail, redirect, error } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { randomBytes } from 'crypto';
 
 async function getOrgId(locals: App.Locals): Promise<{ orgId: string; userId: string }> {

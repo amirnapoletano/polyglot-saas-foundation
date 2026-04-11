@@ -4,9 +4,9 @@
 	import Input from '$lib/components/ui/Input.svelte';
 	import { addToast } from '$lib/stores/toast';
 
-	type Data = { profile?: any };
+	type Data = { profile?: { display_name?: string | null } };
 
-	let { data } = $props<{ data: Data }>();
+	const { data } = $props<{ data: Data }>();
 
 	const initialName = data.profile?.display_name ?? '';
 
@@ -17,6 +17,7 @@
 	let loading = $state(false);
 
 	const totalSteps = 4;
+	const stepIndices = [0, 1, 2, 3];
 
 	async function handleCreateWorkspace() {
 		if (!workspace.trim() || workspace.trim().length < 2) {
@@ -127,7 +128,7 @@
 >
 	<!-- Progress -->
 	<div class="flex items-center gap-2 mb-6">
-		{#each Array(totalSteps) as _, i}
+		{#each stepIndices as i}
 			<div
 				class="h-1.5 flex-1 rounded-full transition-colors {i < step
 					? 'bg-brand-600'

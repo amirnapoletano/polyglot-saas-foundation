@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll, goto } from '$app/navigation';
+	import { invalidateAll } from '$app/navigation';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
@@ -21,7 +21,6 @@
 	// Unenroll state
 	let unenrollOpen = $state(false);
 	let unenrollFactorId = $state('');
-	let unenrolling = $state(false);
 
 	async function getSupabase() {
 		const { createBrowserClient } = await import('@supabase/ssr');
@@ -93,7 +92,6 @@
 	}
 
 	async function unenroll() {
-		unenrolling = true;
 		try {
 			const supabase = await getSupabase();
 			const { error } = await supabase.auth.mfa.unenroll({ factorId: unenrollFactorId });
@@ -107,8 +105,6 @@
 			await invalidateAll();
 		} catch {
 			addToast('Failed to remove 2FA.', 'error');
-		} finally {
-			unenrolling = false;
 		}
 	}
 

@@ -37,8 +37,8 @@
 				return;
 			}
 			throw new Error('Checkout URL missing');
-		} catch (e: any) {
-			addToast(e?.message ?? 'Checkout failed', 'error');
+		} catch (e: unknown) {
+			addToast((e instanceof Error ? e.message : null) ?? 'Checkout failed', 'error');
 		} finally {
 			loading = false;
 		}
@@ -56,8 +56,8 @@
 				return;
 			}
 			throw new Error('Portal URL missing');
-		} catch (e: any) {
-			addToast(e?.message ?? 'Portal failed', 'error');
+		} catch (e: unknown) {
+			addToast((e instanceof Error ? e.message : null) ?? 'Portal failed', 'error');
 		} finally {
 			loading = false;
 		}

@@ -59,7 +59,9 @@ export const actions: Actions = {
 			if (memberError) {
 				try {
 					await locals.supabase.from('organizations').delete().eq('id', org.id);
-				} catch {}
+				} catch {
+					// no-op
+				}
 				return fail(500, { message: memberError.message });
 			}
 
