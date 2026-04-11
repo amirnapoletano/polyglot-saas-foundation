@@ -117,7 +117,7 @@
 			? 'Set up your profile'
 			: step === 3
 				? 'Invite your team'
-				: 'You\'re all set!'}
+				: "You're all set!"}
 	subtitle={step === 1
 		? 'Pick a name for your organization'
 		: step === 2
@@ -148,18 +148,11 @@
 				maxlength={60}
 				placeholder="My Company"
 			/>
-			<Button onclick={handleCreateWorkspace} {loading} class="w-full">
-				Create workspace
-			</Button>
+			<Button onclick={handleCreateWorkspace} {loading} class="w-full">Create workspace</Button>
 		</div>
 	{:else if step === 2}
 		<div class="flex flex-col gap-4">
-			<Input
-				label="Your name"
-				bind:value={displayName}
-				placeholder="Jane Smith"
-				maxlength={80}
-			/>
+			<Input label="Your name" bind:value={displayName} placeholder="Jane Smith" maxlength={80} />
 			<Button onclick={handleUpdateProfile} {loading} class="w-full">
 				{displayName.trim() ? 'Save & continue' : 'Skip'}
 			</Button>
@@ -188,19 +181,12 @@
 			<div
 				class="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"
 			>
-				<svg
-					class="h-8 w-8"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-					stroke-width="2"
-				>
+				<svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
 					<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
 				</svg>
 			</div>
 			<p class="text-sm text-text-secondary text-center">
-				<strong class="text-text-primary">{workspace || 'Your workspace'}</strong> is ready.
-				Start building!
+				<strong class="text-text-primary">{workspace || 'Your workspace'}</strong> is ready. Start building!
 			</p>
 			<Button onclick={goToDashboard} class="w-full">Go to Dashboard</Button>
 		</div>

@@ -55,7 +55,9 @@
 			<form method="POST" action="?/upload" enctype="multipart/form-data" use:enhance>
 				<div class="flex gap-3 items-end flex-wrap">
 					<div class="flex-1 min-w-[240px]">
-						<label for="file-upload" class="block text-sm font-medium text-text-primary mb-1.5">Choose file</label>
+						<label for="file-upload" class="block text-sm font-medium text-text-primary mb-1.5"
+							>Choose file</label
+						>
 						<input
 							id="file-upload"
 							name="file"

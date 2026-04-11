@@ -92,7 +92,8 @@
 			<p class="mt-3 text-2xl font-bold text-text-primary capitalize">{billingLabel}</p>
 			{#if nextBilling}
 				<p class="mt-1 text-xs text-text-tertiary">
-					{data.billing?.cancel_at_period_end ? 'Ends' : 'Renews'} {nextBilling}
+					{data.billing?.cancel_at_period_end ? 'Ends' : 'Renews'}
+					{nextBilling}
 				</p>
 			{/if}
 		</Card>
@@ -104,7 +105,8 @@
 			</div>
 			<p class="mt-3 text-2xl font-bold text-text-primary">{data.memberCount}</p>
 			<p class="mt-1 text-xs text-text-tertiary">
-				{data.membersByRole?.owner ?? 0} owner, {data.membersByRole?.admin ?? 0} admin, {data.membersByRole?.member ?? 0} member{(data.membersByRole?.member ?? 0) !== 1 ? 's' : ''}
+				{data.membersByRole?.owner ?? 0} owner, {data.membersByRole?.admin ?? 0} admin, {data
+					.membersByRole?.member ?? 0} member{(data.membersByRole?.member ?? 0) !== 1 ? 's' : ''}
 			</p>
 		</Card>
 
@@ -170,9 +172,21 @@
 					href="/app/members"
 					class="flex items-center gap-3 rounded-lg p-3 hover:bg-surface-secondary transition-colors"
 				>
-					<div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-						<svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
-							<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
+					<div
+						class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600"
+					>
+						<svg
+							class="h-4.5 w-4.5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							stroke-width="1.75"
+						>
+							<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle
+								cx="9"
+								cy="7"
+								r="4"
+							/><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
 						</svg>
 					</div>
 					<div>
@@ -185,14 +199,29 @@
 					href="/app/premium"
 					class="flex items-center gap-3 rounded-lg p-3 hover:bg-surface-secondary transition-colors"
 				>
-					<div class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-						<svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
-							<rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" />
+					<div
+						class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"
+					>
+						<svg
+							class="h-4.5 w-4.5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							stroke-width="1.75"
+						>
+							<rect x="1" y="4" width="22" height="16" rx="2" /><line
+								x1="1"
+								y1="10"
+								x2="23"
+								y2="10"
+							/>
 						</svg>
 					</div>
 					<div>
 						<p class="text-sm font-medium text-text-primary">Manage billing</p>
-						<p class="text-xs text-text-tertiary">{data.plan === 'pro' ? 'Pro plan' : 'Free plan'}</p>
+						<p class="text-xs text-text-tertiary">
+							{data.plan === 'pro' ? 'Pro plan' : 'Free plan'}
+						</p>
 					</div>
 				</a>
 
@@ -200,14 +229,26 @@
 					href="/app/api-keys"
 					class="flex items-center gap-3 rounded-lg p-3 hover:bg-surface-secondary transition-colors"
 				>
-					<div class="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
-						<svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
-							<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+					<div
+						class="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-600"
+					>
+						<svg
+							class="h-4.5 w-4.5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							stroke-width="1.75"
+						>
+							<path
+								d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
+							/>
 						</svg>
 					</div>
 					<div>
 						<p class="text-sm font-medium text-text-primary">API keys</p>
-						<p class="text-xs text-text-tertiary">{data.plan === 'pro' ? 'Manage keys' : 'Pro feature'}</p>
+						<p class="text-xs text-text-tertiary">
+							{data.plan === 'pro' ? 'Manage keys' : 'Pro feature'}
+						</p>
 					</div>
 				</a>
 
@@ -215,9 +256,19 @@
 					href="/app/settings"
 					class="flex items-center gap-3 rounded-lg p-3 hover:bg-surface-secondary transition-colors"
 				>
-					<div class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
-						<svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
-							<circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+					<div
+						class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600"
+					>
+						<svg
+							class="h-4.5 w-4.5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							stroke-width="1.75"
+						>
+							<circle cx="12" cy="12" r="3" /><path
+								d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
+							/>
 						</svg>
 					</div>
 					<div>

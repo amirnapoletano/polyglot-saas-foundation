@@ -100,14 +100,14 @@ Open [http://localhost:5173](http://localhost:5173)
 
 Database migrations are in `supabase/migrations/`. Run them in order in your Supabase SQL Editor, or use the Supabase CLI.
 
-| # | File | Description |
-|---|------|-------------|
-| 1 | `00001_create_tables.sql` | Core tables (profiles, organizations, members, billing, invites, projects, audit log, API keys) |
-| 2 | `00002_triggers.sql` | Auto-create profile on signup, updated_at triggers |
-| 3 | `00003_rls_policies.sql` | Row Level Security policies for all tables |
-| 4 | `00004_indexes.sql` | Performance indexes for common queries |
-| 5 | `00005_storage.sql` | Supabase Storage bucket for avatar uploads |
-| 6 | `00006_seed.sql` | Optional seed data for development |
+| #   | File                      | Description                                                                                     |
+| --- | ------------------------- | ----------------------------------------------------------------------------------------------- |
+| 1   | `00001_create_tables.sql` | Core tables (profiles, organizations, members, billing, invites, projects, audit log, API keys) |
+| 2   | `00002_triggers.sql`      | Auto-create profile on signup, updated_at triggers                                              |
+| 3   | `00003_rls_policies.sql`  | Row Level Security policies for all tables                                                      |
+| 4   | `00004_indexes.sql`       | Performance indexes for common queries                                                          |
+| 5   | `00005_storage.sql`       | Supabase Storage bucket for avatar uploads                                                      |
+| 6   | `00006_seed.sql`          | Optional seed data for development                                                              |
 
 See [`supabase/README.md`](./supabase/README.md) for detailed setup instructions.
 

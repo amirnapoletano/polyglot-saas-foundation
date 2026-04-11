@@ -21,7 +21,12 @@
 				<Input label="Key" name="key" bind:value={newKey} placeholder="new_feature" required />
 			</div>
 			<div class="flex-1 min-w-[200px]">
-				<Input label="Description" name="description" bind:value={newDescription} placeholder="Enable the new feature" />
+				<Input
+					label="Description"
+					name="description"
+					bind:value={newDescription}
+					placeholder="Enable the new feature"
+				/>
 			</div>
 			<Button type="submit">Create</Button>
 		</form>

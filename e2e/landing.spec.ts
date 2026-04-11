@@ -20,7 +20,10 @@ test.describe('Landing page', () => {
 
 	test('navigation links work', async ({ page }) => {
 		await page.goto('/');
-		await page.getByRole('link', { name: /log in|sign in/i }).first().click();
+		await page
+			.getByRole('link', { name: /log in|sign in/i })
+			.first()
+			.click();
 		await expect(page).toHaveURL(/\/login/);
 	});
 });

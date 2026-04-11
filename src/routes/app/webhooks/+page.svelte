@@ -17,7 +17,7 @@
 	$effect(() => {
 		if (form?.secret) {
 			showSecret = form.secret;
-			addToast('Webhook created. Copy the signing secret — it won\'t be shown again.', 'success');
+			addToast("Webhook created. Copy the signing secret — it won't be shown again.", 'success');
 		}
 	});
 
@@ -46,7 +46,14 @@
 			<h2 class="text-lg font-semibold text-text-primary mb-4">Add Webhook</h2>
 			<form method="POST" action="?/create" use:enhance class="flex gap-3 items-end flex-wrap">
 				<div class="flex-1 min-w-[280px]">
-					<Input label="Endpoint URL" name="url" bind:value={url} type="url" placeholder="https://example.com/webhook" required />
+					<Input
+						label="Endpoint URL"
+						name="url"
+						bind:value={url}
+						type="url"
+						placeholder="https://example.com/webhook"
+						required
+					/>
 				</div>
 				<Button type="submit">Create</Button>
 			</form>
@@ -58,10 +65,17 @@
 
 	{#if showSecret}
 		<Card>
-			<div class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
+			<div
+				class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30"
+			>
 				<p class="text-sm font-medium text-amber-800 dark:text-amber-200 mb-2">Signing Secret</p>
-				<code class="block text-xs bg-white dark:bg-surface rounded-lg p-3 break-all text-text-primary border border-border">{showSecret}</code>
-				<p class="mt-2 text-xs text-amber-700 dark:text-amber-300">Copy this now — it won't be shown again. Use it to verify webhook signatures.</p>
+				<code
+					class="block text-xs bg-white dark:bg-surface rounded-lg p-3 break-all text-text-primary border border-border"
+					>{showSecret}</code
+				>
+				<p class="mt-2 text-xs text-amber-700 dark:text-amber-300">
+					Copy this now — it won't be shown again. Use it to verify webhook signatures.
+				</p>
 			</div>
 		</Card>
 	{/if}

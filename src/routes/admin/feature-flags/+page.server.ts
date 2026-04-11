@@ -14,7 +14,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
 	create: async ({ request, locals }) => {
 		const form = await request.formData();
-		const key = String(form.get('key') ?? '').trim().toLowerCase().replace(/\s+/g, '_');
+		const key = String(form.get('key') ?? '')
+			.trim()
+			.toLowerCase()
+			.replace(/\s+/g, '_');
 		const description = String(form.get('description') ?? '').trim();
 
 		if (!key || key.length < 2) return fail(400, { message: 'Key is required (min 2 chars).' });

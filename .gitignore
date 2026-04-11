@@ -26,3 +26,4 @@ vite.config.ts.timestamp-*
 agent-state.md
 next-agent-instructions.md
 CLAUDE.md
+.claude/worktrees/

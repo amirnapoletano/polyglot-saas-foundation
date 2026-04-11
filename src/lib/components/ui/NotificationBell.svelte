@@ -135,14 +135,20 @@
 					{#each notifications as notif}
 						<button
 							onclick={() => handleNotificationClick(notif)}
-							class="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-surface-secondary transition-colors {!notif.read_at ? 'bg-brand-50/50 dark:bg-brand-950/20' : ''}"
+							class="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-surface-secondary transition-colors {!notif.read_at
+								? 'bg-brand-50/50 dark:bg-brand-950/20'
+								: ''}"
 						>
 							<div
-								class="mt-1.5 h-2 w-2 shrink-0 rounded-full {!notif.read_at ? 'bg-brand-600' : 'bg-transparent'}"
+								class="mt-1.5 h-2 w-2 shrink-0 rounded-full {!notif.read_at
+									? 'bg-brand-600'
+									: 'bg-transparent'}"
 							></div>
 							<div class="min-w-0 flex-1">
 								<p
-									class="text-sm {!notif.read_at ? 'font-medium text-text-primary' : 'text-text-secondary'}"
+									class="text-sm {!notif.read_at
+										? 'font-medium text-text-primary'
+										: 'text-text-secondary'}"
 								>
 									{notif.title}
 								</p>

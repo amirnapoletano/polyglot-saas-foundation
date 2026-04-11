@@ -17,7 +17,10 @@ export const POST: RequestHandler = async ({ locals, url }) => {
 	const userId = user.id;
 
 	// Resolve org (server-side only)
-	const localsExt = locals as Record<string, unknown> & { org?: { id?: string }; organization?: { id?: string } };
+	const localsExt = locals as Record<string, unknown> & {
+		org?: { id?: string };
+		organization?: { id?: string };
+	};
 	let organizationId: string | null = localsExt?.org?.id ?? localsExt?.organization?.id ?? null;
 
 	if (!organizationId) {

@@ -64,13 +64,15 @@
 						<a
 							href="?page={data.page - 1}{search ? `&q=${search}` : ''}"
 							class="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text-primary hover:bg-surface-secondary"
-						>Previous</a>
+							>Previous</a
+						>
 					{/if}
 					{#if data.page < data.totalPages}
 						<a
 							href="?page={data.page + 1}{search ? `&q=${search}` : ''}"
 							class="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text-primary hover:bg-surface-secondary"
-						>Next</a>
+							>Next</a
+						>
 					{/if}
 				</div>
 			</div>
