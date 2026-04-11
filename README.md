@@ -98,171 +98,18 @@ Open [http://localhost:5173](http://localhost:5173)
 
 ## Database Setup
 
-Run this SQL in your Supabase SQL Editor to create the required tables:
+Database migrations are in `supabase/migrations/`. Run them in order in your Supabase SQL Editor, or use the Supabase CLI.
 
-```sql
--- Profiles (auto-created on signup via trigger)
-create table public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  email text,
-  display_name text,
-  plan text default 'free',
-  active_org_id uuid,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
+| # | File | Description |
+|---|------|-------------|
+| 1 | `00001_create_tables.sql` | Core tables (profiles, organizations, members, billing, invites, projects, audit log, API keys) |
+| 2 | `00002_triggers.sql` | Auto-create profile on signup, updated_at triggers |
+| 3 | `00003_rls_policies.sql` | Row Level Security policies for all tables |
+| 4 | `00004_indexes.sql` | Performance indexes for common queries |
+| 5 | `00005_storage.sql` | Supabase Storage bucket for avatar uploads |
+| 6 | `00006_seed.sql` | Optional seed data for development |
 
--- Organizations
-create table public.organizations (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  created_by uuid references auth.users(id),
-  created_at timestamptz default now()
-);
-
--- Organization Members (many-to-many)
-create table public.organization_members (
-  id uuid primary key default gen_random_uuid(),
-  organization_id uuid references public.organizations(id) on delete cascade not null,
-  user_id uuid references auth.users(id) on delete cascade not null,
-  role text not null default 'member' check (role in ('owner', 'admin', 'member')),
-  created_at timestamptz default now(),
-  unique(organization_id, user_id)
-);
-
--- Organization Billing (one per org)
-create table public.org_billing (
-  organization_id uuid primary key references public.organizations(id) on delete cascade,
-  stripe_customer_id text,
-  stripe_subscription_id text,
-  status text,
-  price_id text,
-  current_period_end timestamptz,
-  cancel_at_period_end boolean default false,
-  updated_at timestamptz default now()
-);
-
--- Organization Invites
-create table public.org_invites (
-  id uuid primary key default gen_random_uuid(),
-  organization_id uuid references public.organizations(id) on delete cascade not null,
-  email text not null,
-  role text not null default 'member' check (role in ('admin', 'member')),
-  token text not null unique,
-  expires_at timestamptz,
-  created_at timestamptz default now(),
-  accepted_at timestamptz
-);
-
--- Projects (for usage limits)
-create table public.projects (
-  id uuid primary key default gen_random_uuid(),
-  organization_id uuid references public.organizations(id) on delete cascade not null,
-  name text not null,
-  created_at timestamptz default now()
-);
-
--- Audit Log (activity tracking)
-create table public.audit_log (
-  id uuid primary key default gen_random_uuid(),
-  organization_id uuid references public.organizations(id) on delete cascade not null,
-  actor_user_id uuid references auth.users(id) on delete set null,
-  action text not null,
-  resource_type text,
-  resource_id text,
-  metadata jsonb,
-  created_at timestamptz default now()
-);
-
--- Auto-create profile on signup
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.profiles (id, email)
-  values (new.id, new.email);
-  return new;
-end;
-$$ language plpgsql security definer;
-
-create or replace trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
-
--- Add foreign key from profiles to organizations
-alter table public.profiles
-  add constraint profiles_active_org_fk
-  foreign key (active_org_id)
-  references public.organizations(id)
-  on delete set null;
-```
-
-### Recommended RLS Policies
-
-Enable Row Level Security on all tables and add policies:
-
-```sql
--- Enable RLS
-alter table public.profiles enable row level security;
-alter table public.organizations enable row level security;
-alter table public.organization_members enable row level security;
-alter table public.org_billing enable row level security;
-alter table public.org_invites enable row level security;
-alter table public.projects enable row level security;
-alter table public.audit_log enable row level security;
-
--- Profiles: users can read/update their own
-create policy "Users can view own profile"
-  on public.profiles for select using (auth.uid() = id);
-create policy "Users can update own profile"
-  on public.profiles for update using (auth.uid() = id);
-
--- Organizations: members can view their orgs
-create policy "Members can view their organizations"
-  on public.organizations for select using (
-    id in (select organization_id from public.organization_members where user_id = auth.uid())
-  );
-create policy "Authenticated users can create organizations"
-  on public.organizations for insert with check (auth.uid() = created_by);
-
--- Organization Members: members can view co-members
-create policy "Members can view org members"
-  on public.organization_members for select using (
-    organization_id in (select organization_id from public.organization_members where user_id = auth.uid())
-  );
-create policy "Owners/admins can manage members"
-  on public.organization_members for all using (
-    organization_id in (
-      select organization_id from public.organization_members
-      where user_id = auth.uid() and role in ('owner', 'admin')
-    )
-  );
-
--- Org Billing: members can view their org's billing
-create policy "Members can view org billing"
-  on public.org_billing for select using (
-    organization_id in (select organization_id from public.organization_members where user_id = auth.uid())
-  );
-
--- Org Invites: members can view, owners/admins can manage
-create policy "Members can view org invites"
-  on public.org_invites for select using (
-    organization_id in (select organization_id from public.organization_members where user_id = auth.uid())
-  );
-
--- Projects: members can view their org's projects
-create policy "Members can view org projects"
-  on public.projects for select using (
-    organization_id in (select organization_id from public.organization_members where user_id = auth.uid())
-  );
-
--- Audit Log: members can view, system can insert
-create policy "Members can view audit log"
-  on public.audit_log for select using (
-    organization_id in (select organization_id from public.organization_members where user_id = auth.uid())
-  );
-create policy "Authenticated users can insert audit log"
-  on public.audit_log for insert with check (auth.uid() = actor_user_id);
-```
+See [`supabase/README.md`](./supabase/README.md) for detailed setup instructions.
 
 ## Project Structure
 

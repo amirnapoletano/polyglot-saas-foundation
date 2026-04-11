@@ -1,0 +1,18 @@
+-- ============================================================================
+-- Migration 00006: Seed Data (Optional)
+-- Sample data for development and demo purposes
+-- Remove or skip this migration in production
+-- ============================================================================
+
+-- No seed data by default.
+-- Uncomment below to create a demo organization after your first user signs up.
+--
+-- insert into public.organizations (id, name, created_by)
+-- values ('00000000-0000-0000-0000-000000000001', 'Demo Workspace', '<your-user-id>');
+--
+-- insert into public.organization_members (organization_id, user_id, role)
+-- values ('00000000-0000-0000-0000-000000000001', '<your-user-id>', 'owner');
+--
+-- update public.profiles
+-- set active_org_id = '00000000-0000-0000-0000-000000000001'
+-- where id = '<your-user-id>';

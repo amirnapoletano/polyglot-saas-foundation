@@ -191,6 +191,129 @@ export type Database = {
 					}
 				];
 			};
+			files: {
+				Row: {
+					id: string;
+					organization_id: string;
+					name: string;
+					storage_path: string;
+					size_bytes: number;
+					mime_type: string | null;
+					uploaded_by: string | null;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					organization_id: string;
+					name: string;
+					storage_path: string;
+					size_bytes: number;
+					mime_type?: string | null;
+					uploaded_by?: string | null;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					organization_id?: string;
+					name?: string;
+					storage_path?: string;
+					size_bytes?: number;
+					mime_type?: string | null;
+					uploaded_by?: string | null;
+					created_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'files_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					}
+				];
+			};
+			feature_flags: {
+				Row: {
+					id: string;
+					key: string;
+					description: string | null;
+					enabled: boolean;
+					organization_id: string | null;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					key: string;
+					description?: string | null;
+					enabled?: boolean;
+					organization_id?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					key?: string;
+					description?: string | null;
+					enabled?: boolean;
+					organization_id?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'feature_flags_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					}
+				];
+			};
+			notifications: {
+				Row: {
+					id: string;
+					organization_id: string;
+					user_id: string;
+					type: string;
+					title: string;
+					body: string | null;
+					href: string | null;
+					read_at: string | null;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					organization_id: string;
+					user_id: string;
+					type: string;
+					title: string;
+					body?: string | null;
+					href?: string | null;
+					read_at?: string | null;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					organization_id?: string;
+					user_id?: string;
+					type?: string;
+					title?: string;
+					body?: string | null;
+					href?: string | null;
+					read_at?: string | null;
+					created_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'notifications_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					}
+				];
+			};
 			organization_members: {
 				Row: {
 					created_at: string | null;
@@ -283,6 +406,7 @@ export type Database = {
 					display_name: string | null;
 					email: string | null;
 					id: string;
+					is_super_admin: boolean;
 					onboarding_completed: boolean;
 					plan: string;
 					updated_at: string;
@@ -294,6 +418,7 @@ export type Database = {
 					display_name?: string | null;
 					email?: string | null;
 					id: string;
+					is_super_admin?: boolean;
 					onboarding_completed?: boolean;
 					plan?: string;
 					updated_at?: string;
@@ -305,6 +430,7 @@ export type Database = {
 					display_name?: string | null;
 					email?: string | null;
 					id?: string;
+					is_super_admin?: boolean;
 					onboarding_completed?: boolean;
 					plan?: string;
 					updated_at?: string;
@@ -315,6 +441,94 @@ export type Database = {
 						columns: ['active_org_id'];
 						isOneToOne: false;
 						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					}
+				];
+			};
+			webhooks: {
+				Row: {
+					id: string;
+					organization_id: string;
+					url: string;
+					secret: string;
+					events: string[];
+					active: boolean;
+					created_by: string | null;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					organization_id: string;
+					url: string;
+					secret: string;
+					events?: string[];
+					active?: boolean;
+					created_by?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					organization_id?: string;
+					url?: string;
+					secret?: string;
+					events?: string[];
+					active?: boolean;
+					created_by?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'webhooks_organization_id_fkey';
+						columns: ['organization_id'];
+						isOneToOne: false;
+						referencedRelation: 'organizations';
+						referencedColumns: ['id'];
+					}
+				];
+			};
+			webhook_deliveries: {
+				Row: {
+					id: string;
+					webhook_id: string;
+					event: string;
+					payload: Json;
+					status_code: number | null;
+					response_body: string | null;
+					success: boolean;
+					attempt: number;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					webhook_id: string;
+					event: string;
+					payload: Json;
+					status_code?: number | null;
+					response_body?: string | null;
+					success?: boolean;
+					attempt?: number;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					webhook_id?: string;
+					event?: string;
+					payload?: Json;
+					status_code?: number | null;
+					response_body?: string | null;
+					success?: boolean;
+					attempt?: number;
+					created_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'webhook_deliveries_webhook_id_fkey';
+						columns: ['webhook_id'];
+						isOneToOne: false;
+						referencedRelation: 'webhooks';
 						referencedColumns: ['id'];
 					}
 				];

@@ -14,57 +14,76 @@ export const load: PageServerLoad = async ({ locals }) => {
 	if (error) return { profile: null, message: error.message };
 	if (!profile) return { profile: null, message: 'Profile not found' };
 
-	// ✅ If already onboarded, go to app
 	if (profile.active_org_id) throw redirect(303, '/app/dashboard');
 
 	return { profile };
 };
 
 export const actions: Actions = {
-	createWorkspace: async ({ request, locals }) => {
+	default: async ({ request, locals }) => {
 		const { session, user } = await locals.safeGetSession();
 		if (!session || !user) throw redirect(303, '/login');
 
 		const form = await request.formData();
-		const name = String(form.get('workspace_name') || '').trim();
+		const action = form.get('_action');
 
-		if (!name || name.length < 2)
-			return fail(400, { message: 'Workspace name must be at least 2 characters.' });
-		if (name.length > 60)
-			return fail(400, { message: 'Workspace name must be under 60 characters.' });
+		if (action === 'createWorkspace') {
+			const name = String(form.get('workspace_name') || '').trim();
 
-		// 1) Create org
-		const { data: org, error: orgError } = await locals.supabase
-			.from('organizations')
-			.insert({ name, created_by: user.id })
-			.select('id, name')
-			.single();
+			if (!name || name.length < 2)
+				return fail(400, { message: 'Workspace name must be at least 2 characters.' });
+			if (name.length > 60)
+				return fail(400, { message: 'Workspace name must be under 60 characters.' });
 
-		if (orgError || !org)
-			return fail(500, { message: orgError?.message ?? 'Failed to create workspace.' });
+			const displayName = String(form.get('display_name') || '').trim();
+			if (displayName) {
+				await locals.supabase
+					.from('profiles')
+					.update({ display_name: displayName })
+					.eq('id', user.id);
+			}
 
-		// 2) Create membership
-		const { error: memberError } = await locals.supabase
-			.from('organization_members')
-			.insert({ organization_id: org.id, user_id: user.id, role: 'owner' });
+			const { data: org, error: orgError } = await locals.supabase
+				.from('organizations')
+				.insert({ name, created_by: user.id })
+				.select('id, name')
+				.single();
 
-		if (memberError) {
-			// best-effort cleanup
-			try {
-				await locals.supabase.from('organizations').delete().eq('id', org.id);
-			} catch {}
-			return fail(500, { message: memberError.message });
+			if (orgError || !org)
+				return fail(500, { message: orgError?.message ?? 'Failed to create workspace.' });
+
+			const { error: memberError } = await locals.supabase
+				.from('organization_members')
+				.insert({ organization_id: org.id, user_id: user.id, role: 'owner' });
+
+			if (memberError) {
+				try {
+					await locals.supabase.from('organizations').delete().eq('id', org.id);
+				} catch {}
+				return fail(500, { message: memberError.message });
+			}
+
+			const { error: profileError } = await locals.supabase
+				.from('profiles')
+				.update({ active_org_id: org.id })
+				.eq('id', user.id);
+
+			if (profileError) return fail(500, { message: profileError.message });
+
+			return { orgId: org.id, step: 2 };
 		}
 
-		// 3) Set active org on profile
-		const { error: profileError } = await locals.supabase
-			.from('profiles')
-			.update({ active_org_id: org.id })
-			.eq('id', user.id);
+		if (action === 'updateProfile') {
+			const displayName = String(form.get('display_name') || '').trim();
+			if (displayName) {
+				await locals.supabase
+					.from('profiles')
+					.update({ display_name: displayName })
+					.eq('id', user.id);
+			}
+			return { step: 3 };
+		}
 
-		if (profileError) return fail(500, { message: profileError.message });
-
-		// 4) After everything succeeded, redirect to the app
-		throw redirect(303, '/app/dashboard');
+		return fail(400, { message: 'Unknown action' });
 	}
 };
