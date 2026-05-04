@@ -1,8 +1,6 @@
 import { redirect, error } from '@sveltejs/kit';
-import { createClient } from '@supabase/supabase-js';
-import { PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
 import { logActivity } from '$lib/server/audit';
+import { supabaseServiceClient } from '$lib/server/supabase';
 
 export const load = async ({ params, locals, url }) => {
 	const token = params.token;
@@ -11,12 +9,7 @@ export const load = async ({ params, locals, url }) => {
 		throw error(400, 'Missing invite token');
 	}
 
-	const supabaseAdmin = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-		auth: {
-			persistSession: false,
-			autoRefreshToken: false
-		}
-	});
+	const supabaseAdmin = await supabaseServiceClient();
 
 	const { data: invite, error: inviteError } = await supabaseAdmin
 		.from('org_invites')
