@@ -82,6 +82,8 @@ export const limiters = {
 	invite: { max: 5, windowSeconds: 60 },
 	/** API key creation: 10 requests per minute per user */
 	apiKey: { max: 10, windowSeconds: 60 },
+	/** Stripe checkout: 5 requests per minute per IP */
+	checkout: { max: 5, windowSeconds: 60 },
 	/** Public API: 100 requests per minute per API key */
 	api: { max: 100, windowSeconds: 60 }
 } as const;

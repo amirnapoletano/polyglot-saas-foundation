@@ -66,7 +66,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	if (path.startsWith('/api/stripe/checkout') && event.request.method === 'POST') {
-		const result = rateLimit(`checkout:${ip}`, limiters.auth);
+		const result = rateLimit(`checkout:${ip}`, limiters.checkout);
 		if (!result.allowed) return rateLimitResponse(result);
 	}
 

@@ -13,24 +13,33 @@ A production-ready SaaS starter kit built with **SvelteKit 2**, **Svelte 5**, **
 
 ## What's Included
 
-- **Authentication** — Email/password signup, login, logout, password reset. Server-validated sessions with secure cookie handling.
+- **Authentication** — Email/password, OAuth (Google, GitHub), email verification, password reset. Server-validated sessions with secure cookie handling.
+- **Multi-Factor Authentication** — TOTP-based MFA enrollment and verification. Enforced challenge on login when enrolled.
 - **Multi-Organization** — Users can belong to multiple workspaces. Org switching, active workspace persistence, automatic repair if membership changes.
 - **Team Management** — Invite members by email with token-based links. Role-based access (owner/admin/member). Seat limits per plan.
+- **RBAC Permissions** — Granular permission system (members.invite, billing.manage, org.delete, etc.) mapped to roles with a server-side enforcement helper.
 - **Stripe Billing** — Per-org subscriptions with checkout, webhook sync, and customer portal. Free/Pro plan gating with usage limits.
-- **Onboarding Flow** — Post-signup workspace creation that sets up org, membership, and active state in one step.
-- **Audit Logging** — Activity timeline tracking member invites, role changes, billing events, and API key usage.
+- **Onboarding Flow** — Multi-step post-signup workspace creation with profile setup, team plan selection, and welcome tour.
+- **Admin Panel** — Super-admin dashboard with user management, organization overview, and feature flag controls. Protected by `is_super_admin` flag.
+- **Feature Flags** — Global and org-scoped feature flags with admin UI. Server helper for checking flags in load functions and actions.
+- **Outgoing Webhooks** — Register endpoint URLs per org, HMAC-SHA256 signature verification, delivery tracking with status codes and retry history.
+- **File Management** — Org-scoped file uploads via Supabase Storage (10MB limit). Upload, list, and delete with uploader attribution.
+- **Notifications** — In-app notification system with bell icon, unread count badge, mark-as-read, and server-side creation helper for org-wide alerts.
+- **Audit Logging** — Activity timeline tracking org creation, member invites, role changes, billing events, and API key usage.
 - **API Key Management** — Generate, revoke, and authenticate with SHA-256 hashed API keys (Pro plan). Bearer token auth for `/api/v1/*` routes.
 - **Transactional Email** — Welcome and invite emails via Resend. Graceful dev fallback (logs to console when API key not set).
 - **Rate Limiting** — In-memory sliding window limiter on auth, invites, API keys, checkout, and public API routes. 429 responses with Retry-After headers.
 - **Security Headers** — X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy on every response.
+- **Search & Filtering** — Server-side search with query params on member lists and admin pages. Pagination on all list views.
 - **Avatar Uploads** — Profile image upload via Supabase Storage with initials fallback.
-- **App Shell** — Responsive sidebar layout with navigation, org switcher, keyboard shortcuts, and mobile menu.
-- **UI Component Library** — 12 components: Button, Input, Card, Badge, Avatar, Toast, ConfirmModal, ThemeToggle, PageHeader, EmptyState, NavProgress, and more.
+- **App Shell** — Responsive sidebar layout with navigation, org switcher, keyboard shortcuts (press `?`), and mobile menu.
+- **UI Component Library** — 14 components: Button, Input, Card, Badge, Avatar, Toast, ConfirmModal, ThemeToggle, PageHeader, EmptyState, NavProgress, Skeleton, NotificationBell, and AuthLayout.
 - **Dark Mode** — CSS custom properties with dark mode toggle. Full design token system in Tailwind v4.
 - **CI/CD Pipeline** — GitHub Actions workflow: lint, typecheck, build, and test on every push and PR.
-- **Testing** — Vitest with 25+ unit tests covering API keys, billing, audit logging, and rate limiting.
+- **Testing** — Vitest unit tests for core business logic + Playwright E2E tests covering auth guards, navigation, error handling, and page rendering.
 - **Typed Database** — Auto-generated Supabase types for full TypeScript safety across all queries.
 - **Error Handling** — Branded error pages for 404/500 states.
+- **SEO & Legal** — Open Graph meta tags, terms of service, and privacy policy pages.
 
 ## Tech Stack
 
@@ -42,7 +51,7 @@ A production-ready SaaS starter kit built with **SvelteKit 2**, **Svelte 5**, **
 | Auth & Database | Supabase (PostgreSQL + Auth + Storage) |
 | Billing         | Stripe (Checkout + Webhooks + Portal)  |
 | Email           | Resend                                 |
-| Testing         | Vitest                                 |
+| Testing         | Vitest + Playwright                    |
 | CI/CD           | GitHub Actions                         |
 | Build           | Vite 7                                 |
 | Code Quality    | ESLint + Prettier                      |
@@ -108,6 +117,10 @@ Database migrations are in `supabase/migrations/`. Run them in order in your Sup
 | 4   | `00004_indexes.sql`       | Performance indexes for common queries                                                          |
 | 5   | `00005_storage.sql`       | Supabase Storage bucket for avatar uploads                                                      |
 | 6   | `00006_seed.sql`          | Optional seed data for development                                                              |
+| 7   | `00007_notifications.sql` | Notifications table with RLS policies                                                           |
+| 8   | `00008_admin.sql`         | Admin features (is_super_admin flag, feature_flags table)                                       |
+| 9   | `00009_webhooks.sql`      | Webhooks + webhook_deliveries tables with RLS                                                   |
+| 10  | `00010_files.sql`         | Files metadata table + Supabase Storage bucket                                                  |
 
 See [`supabase/README.md`](./supabase/README.md) for detailed setup instructions.
 

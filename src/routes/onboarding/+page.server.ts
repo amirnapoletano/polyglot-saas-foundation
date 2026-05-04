@@ -1,5 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
+import { logActivity } from '$lib/server/audit';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const { session, user } = await locals.safeGetSession();
@@ -71,6 +72,15 @@ export const actions: Actions = {
 				.eq('id', user.id);
 
 			if (profileError) return fail(500, { message: profileError.message });
+
+			await logActivity(locals.supabase, {
+				organizationId: org.id,
+				actorUserId: user.id,
+				action: 'org.created',
+				resourceType: 'organization',
+				resourceId: org.id,
+				metadata: { name: org.name }
+			});
 
 			return { orgId: org.id, step: 2 };
 		}
