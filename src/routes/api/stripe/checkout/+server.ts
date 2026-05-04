@@ -15,12 +15,8 @@ export const POST: RequestHandler = async ({ locals, url }) => {
 	if (!authSession || !user) return new Response('Unauthorized', { status: 401 });
 	const userId = user.id;
 
-	// Resolve org safely: prefer server-known org, else first membership
-	const localsExt = locals as Record<string, unknown> & {
-		org?: { id?: string };
-		organization?: { id?: string };
-	};
-	let organizationId: string | null = localsExt?.org?.id ?? localsExt?.organization?.id ?? null;
+	// Resolve org: fall back to first membership if not set
+	let organizationId: string | null = null;
 
 	if (!organizationId) {
 		const { data: membership, error } = await locals.supabase

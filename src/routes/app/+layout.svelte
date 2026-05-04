@@ -142,7 +142,10 @@
 
 	<!-- Backdrop -->
 	{#if sidebarOpen}
-		<button class="fixed inset-0 z-30 bg-black/30 md:hidden" onclick={() => (sidebarOpen = false)}
+		<button
+			class="fixed inset-0 z-30 bg-black/30 md:hidden"
+			aria-label="Close sidebar"
+			onclick={() => (sidebarOpen = false)}
 		></button>
 	{/if}
 
@@ -343,7 +346,11 @@
 <!-- Keyboard shortcuts modal -->
 {#if shortcutsOpen}
 	<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-		<button class="absolute inset-0 bg-black/40" onclick={() => (shortcutsOpen = false)}></button>
+		<button
+			class="absolute inset-0 bg-black/40"
+			aria-label="Close shortcuts"
+			onclick={() => (shortcutsOpen = false)}
+		></button>
 		<div class="relative w-full max-w-sm rounded-xl border border-border bg-surface p-6 shadow-xl">
 			<h3 class="text-lg font-semibold text-text-primary mb-4">Keyboard Shortcuts</h3>
 			<div class="space-y-3">

@@ -9,7 +9,7 @@ const protectedRoutes = [
 	'/app/api-keys',
 	'/app/files',
 	'/app/webhooks',
-	'/app/premium',
+	'/app/premium'
 ];
 
 test.describe('App routes — unauthenticated redirect', () => {

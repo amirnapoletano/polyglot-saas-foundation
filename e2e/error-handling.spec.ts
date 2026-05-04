@@ -33,7 +33,10 @@ test.describe('Error pages', () => {
 		await page.goto('/app/does/not/exist/at/all');
 		// Either redirects to login (unauthenticated) or shows 404 — either is acceptable
 		const url = page.url();
-		const has404 = await page.locator('text=404').isVisible().catch(() => false);
+		const has404 = await page
+			.locator('text=404')
+			.isVisible()
+			.catch(() => false);
 		const redirectedToLogin = url.includes('/login');
 		expect(has404 || redirectedToLogin).toBe(true);
 	});

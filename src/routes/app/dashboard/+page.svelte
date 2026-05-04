@@ -7,10 +7,8 @@
 	let { data } = $props();
 
 	const orgName = $derived(
-		data.organizations?.find(
-			(o: { organization_id: string; organization?: { name?: string } }) =>
-				o.organization_id === data.activeOrgId
-		)?.organization?.name ?? 'Your workspace'
+		data.organizations?.find((o) => o.organization_id === data.activeOrgId)?.organization?.name ??
+			'Your workspace'
 	);
 
 	const actionLabels: Record<string, string> = {

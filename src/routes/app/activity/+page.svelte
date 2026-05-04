@@ -63,13 +63,14 @@
 		return profile?.display_name ?? profile?.email ?? 'Unknown user';
 	}
 
-	function getDetail(entry: { metadata?: Record<string, string> | null }): string | null {
+	function getDetail(entry: { metadata?: unknown }): string | null {
 		const meta = entry.metadata;
-		if (!meta) return null;
-		if (meta.email) return meta.email;
-		if (meta.new_name) return `to "${meta.new_name}"`;
-		if (meta.new_role) return `to ${meta.new_role}`;
-		if (meta.plan) return meta.plan;
+		if (!meta || typeof meta !== 'object') return null;
+		const m = meta as Record<string, string>;
+		if (m.email) return m.email;
+		if (m.new_name) return `to "${m.new_name}"`;
+		if (m.new_role) return `to ${m.new_role}`;
+		if (m.plan) return m.plan;
 		return null;
 	}
 </script>

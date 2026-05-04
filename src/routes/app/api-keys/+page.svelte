@@ -158,7 +158,11 @@
 						</Button>
 					</div>
 				</div>
-				<button class="text-text-tertiary hover:text-text-primary" onclick={() => (newKey = null)}>
+				<button
+					class="text-text-tertiary hover:text-text-primary"
+					aria-label="Dismiss"
+					onclick={() => (newKey = null)}
+				>
 					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
@@ -263,7 +267,11 @@
 <!-- Create key modal -->
 {#if createOpen}
 	<div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-		<button class="absolute inset-0 bg-black/40" onclick={() => (createOpen = false)}></button>
+		<button
+			class="absolute inset-0 bg-black/40"
+			aria-label="Close dialog"
+			onclick={() => (createOpen = false)}
+		></button>
 		<div class="relative w-full max-w-sm rounded-xl border border-border bg-surface p-6 shadow-xl">
 			<h3 class="text-lg font-semibold text-text-primary">Create API Key</h3>
 			<p class="mt-1 text-sm text-text-secondary">Give your key a descriptive name.</p>

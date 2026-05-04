@@ -46,6 +46,7 @@
 </script>
 
 {#if open}
+	<!-- svelte-ignore a11y_interactive_supports_focus -->
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center p-4"
 		role="dialog"
@@ -55,6 +56,7 @@
 		<!-- Backdrop -->
 		<button
 			class="absolute inset-0 bg-black/40 cursor-default"
+			aria-label="Close dialog"
 			transition:fade={{ duration: 150 }}
 			onclick={handleCancel}
 			tabindex="-1"

@@ -3,7 +3,10 @@ import { test, expect } from '@playwright/test';
 test.describe('Landing page — navigation bar', () => {
 	test('nav Log in link goes to /login', async ({ page }) => {
 		await page.goto('/');
-		await page.getByRole('link', { name: /log in/i }).first().click();
+		await page
+			.getByRole('link', { name: /log in/i })
+			.first()
+			.click();
 		await expect(page).toHaveURL(/\/login/);
 	});
 
@@ -25,7 +28,7 @@ test.describe('Landing page — hero section CTAs', () => {
 		await expect(page).toHaveURL(/\/signup/);
 	});
 
-	test('hero See What\'s Included CTA links to #features anchor', async ({ page }) => {
+	test("hero See What's Included CTA links to #features anchor", async ({ page }) => {
 		await page.goto('/');
 		const featuresLink = page.getByRole('link', { name: /see what.s included/i });
 		await expect(featuresLink).toBeVisible();
@@ -45,7 +48,10 @@ test.describe('Landing page — footer links', () => {
 
 	test('footer Privacy link goes to /privacy', async ({ page }) => {
 		await page.goto('/');
-		await page.locator('footer').getByRole('link', { name: /privacy/i }).click();
+		await page
+			.locator('footer')
+			.getByRole('link', { name: /privacy/i })
+			.click();
 		await expect(page).toHaveURL(/\/privacy/);
 		await expect(page.locator('h1')).toContainText(/privacy/i);
 	});
