@@ -29,6 +29,14 @@ jobs:
 
       - name: Typecheck
         run: npm run check
+        env:
+          PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          PUBLIC_SUPABASE_ANON_KEY: placeholder
+          PUBLIC_STRIPE_PUBLISHABLE_KEY: placeholder
+          SUPABASE_SERVICE_ROLE_KEY: placeholder
+          STRIPE_SECRET_KEY: placeholder
+          STRIPE_PRICE_ID: placeholder
+          STRIPE_WEBHOOK_SECRET: placeholder
 
       - name: Build
         run: npm run build
