@@ -12,7 +12,7 @@
 	let url = $state('');
 	let showSecret = $state('');
 
-	const canManage = data.currentUserRole === 'owner' || data.currentUserRole === 'admin';
+	const canManage = $derived(data.currentUserRole === 'owner' || data.currentUserRole === 'admin');
 
 	$effect(() => {
 		if (form?.secret) {

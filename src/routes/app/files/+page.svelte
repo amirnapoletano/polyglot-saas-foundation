@@ -9,8 +9,8 @@
 
 	let { data, form } = $props();
 
-	const canManage = data.currentUserRole === 'owner' || data.currentUserRole === 'admin';
-	const uploaderNames = data.uploaderNames ?? {};
+	const canManage = $derived(data.currentUserRole === 'owner' || data.currentUserRole === 'admin');
+	const uploaderNames = $derived(data.uploaderNames ?? {});
 
 	$effect(() => {
 		if (form?.success) addToast('File uploaded.', 'success');

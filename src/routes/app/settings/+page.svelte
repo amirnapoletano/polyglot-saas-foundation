@@ -17,8 +17,8 @@
 	let leaveModalOpen = $state(false);
 	let deleteAccountModalOpen = $state(false);
 
-	const isOwner = data.currentUserRole === 'owner';
-	const canEdit = isOwner || data.currentUserRole === 'admin';
+	const isOwner = $derived(data.currentUserRole === 'owner');
+	const canEdit = $derived(isOwner || data.currentUserRole === 'admin');
 
 	let avatarUploading = $state(false);
 	let newEmail = $state('');

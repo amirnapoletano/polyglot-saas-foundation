@@ -8,7 +8,7 @@
 
 	const { data } = $props<{ data: Data }>();
 
-	const initialName = data.profile?.display_name ?? '';
+	const initialName = $derived(data.profile?.display_name ?? '');
 
 	let step = $state(1);
 	let workspace = $state('');

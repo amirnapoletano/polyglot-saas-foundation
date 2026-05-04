@@ -21,8 +21,10 @@
 	let pendingCancelId = $state('');
 	let searchQuery = $state('');
 
-	const canManageTeam = data.currentUserRole === 'owner' || data.currentUserRole === 'admin';
-	const canChangeRoles = data.currentUserRole === 'owner';
+	const canManageTeam = $derived(
+		data.currentUserRole === 'owner' || data.currentUserRole === 'admin'
+	);
+	const canChangeRoles = $derived(data.currentUserRole === 'owner');
 
 	let filteredMembers = $derived(
 		searchQuery.trim()
